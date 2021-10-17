@@ -1,9 +1,17 @@
 # basic-notion
-Client-agnostic model wrapper for Notion API
+Client-agnostic model wrapper for Notion API.
 
-##Installation
+This library does not do any interaction over the network itself,
+so it can be used with any existing client that exposes as output
+and accepts as input raw JSONable data.
 
-Just like any othjer python package out there, it can be installed via `pip`
+Note that this project is at its infancy stage, so major changes
+in its structure and API are quite possible and even probable
+in the near future.
+
+## Installation
+
+Just like any other python package out there, it can be installed via `pip`:
 
 ```bash
 pip install basic-notion
