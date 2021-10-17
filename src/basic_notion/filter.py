@@ -63,51 +63,51 @@ class FilterGenDescriptor(Generic[_FILTER_VALUE_TV]):
 
 @attr.s(frozen=True)
 class TextFilterFactory(FilterFactory):
-    equals: FilterGen[str] = FilterGenDescriptor()
-    does_not_equal: FilterGen[str] = FilterGenDescriptor()
-    contains: FilterGen[str] = FilterGenDescriptor()
-    does_not_contain: FilterGen[str] = FilterGenDescriptor()
-    starts_with: FilterGen[str] = FilterGenDescriptor()
-    ends_with: FilterGen[str] = FilterGenDescriptor()
-    is_empty: FilterGen[bool] = FilterGenDescriptor()
-    is_not_empty: FilterGen[bool] = FilterGenDescriptor()
+    equals: FilterGenDescriptor[str] = FilterGenDescriptor()
+    does_not_equal: FilterGenDescriptor[str] = FilterGenDescriptor()
+    contains: FilterGenDescriptor[str] = FilterGenDescriptor()
+    does_not_contain: FilterGenDescriptor[str] = FilterGenDescriptor()
+    starts_with: FilterGenDescriptor[str] = FilterGenDescriptor()
+    ends_with: FilterGenDescriptor[str] = FilterGenDescriptor()
+    is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
 
 
 @attr.s(frozen=True)
 class NumberFilterFactory(FilterFactory):
-    equals: FilterGen[NUMBER] = FilterGenDescriptor()
-    does_not_equal: FilterGen[NUMBER] = FilterGenDescriptor()
-    greater_than: FilterGen[NUMBER] = FilterGenDescriptor()
-    less_than: FilterGen[NUMBER] = FilterGenDescriptor()
-    greater_than_or_equal_to: FilterGen[NUMBER] = FilterGenDescriptor()
-    less_than_or_equal_to: FilterGen[NUMBER] = FilterGenDescriptor()
-    is_empty: FilterGen[bool] = FilterGenDescriptor()
-    is_not_empty: FilterGen[bool] = FilterGenDescriptor()
+    equals: FilterGenDescriptor[NUMBER] = FilterGenDescriptor()
+    does_not_equal: FilterGenDescriptor[NUMBER] = FilterGenDescriptor()
+    greater_than: FilterGenDescriptor[NUMBER] = FilterGenDescriptor()
+    less_than: FilterGenDescriptor[NUMBER] = FilterGenDescriptor()
+    greater_than_or_equal_to: FilterGenDescriptor[NUMBER] = FilterGenDescriptor()
+    less_than_or_equal_to: FilterGenDescriptor[NUMBER] = FilterGenDescriptor()
+    is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
 
 
 @attr.s(frozen=True)
 class CheckboxFilterFactory(FilterFactory):
-    equals: FilterGen[bool] = FilterGenDescriptor()
-    does_not_equal: FilterGen[bool] = FilterGenDescriptor()
+    equals: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    does_not_equal: FilterGenDescriptor[bool] = FilterGenDescriptor()
 
 
 @attr.s(frozen=True)
 class SelectFilterFactory(FilterFactory):
-    equals: FilterGen[str] = FilterGenDescriptor()
-    does_not_equal: FilterGen[str] = FilterGenDescriptor()
-    is_empty: FilterGen[bool] = FilterGenDescriptor()
-    is_not_empty: FilterGen[bool] = FilterGenDescriptor()
+    equals: FilterGenDescriptor[str] = FilterGenDescriptor()
+    does_not_equal: FilterGenDescriptor[str] = FilterGenDescriptor()
+    is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
 
 
 @attr.s(frozen=True)
 class MultiSelectFilterFactory(FilterFactory):
-    equals: FilterGen[str] = FilterGenDescriptor()
-    does_not_equal: FilterGen[str] = FilterGenDescriptor()
-    is_empty: FilterGen[bool] = FilterGenDescriptor()
-    is_not_empty: FilterGen[bool] = FilterGenDescriptor()
+    equals: FilterGenDescriptor[str] = FilterGenDescriptor()
+    does_not_equal: FilterGenDescriptor[str] = FilterGenDescriptor()
+    is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
 
 
 @attr.s(frozen=True)
 class FilesFilterFactory(FilterFactory):
-    is_empty: FilterGen[bool] = FilterGenDescriptor()
-    is_not_empty: FilterGen[bool] = FilterGenDescriptor()
+    is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()

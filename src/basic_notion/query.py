@@ -10,7 +10,7 @@ from basic_notion.filter import PropertyFilter
 class QuerySerializer:
     @classmethod
     def serialize(cls, query: Query) -> dict:
-        data = {
+        data: dict[str, Any] = {
             'database_id': query.database_id,
         }
         if query.filter_obj:

@@ -17,12 +17,12 @@ class Field(Generic[_PROP_VALUE_TV]):
     The returned value is an instance of the ``PageProperty``
     """
 
-    __slots__ = ('__attribute', '__type_name')
+    __slots__ = ('__property_name', '__type_name')
 
     _PROP_CLS: ClassVar[Type[_PROP_VALUE_TV]]
 
-    def __init__(self, attribute: Optional[str] = None) -> None:
-        self.__attribute = attribute
+    def __init__(self, property_name: Optional[str] = None) -> None:
+        self.__property_name = property_name
 
     def __set_name__(self, owner: Type[_OWNER_TV], name: str) -> None:
         """
@@ -30,20 +30,20 @@ class Field(Generic[_PROP_VALUE_TV]):
         if the attr name wasn't specified explicitly
         """
 
-        if self.__attribute is None:
-            self.__attribute = name
+        if self.__property_name is None:
+            self.__property_name = name
 
     @property
-    def _attribute(self) -> str:
-        assert self.__attribute is not None
-        return self.__attribute
+    def _property_name(self) -> str:
+        assert self.__property_name is not None
+        return self.__property_name
 
     def __get__(self, instance: Optional[_OWNER_TV], owner: Type[_OWNER_TV]) -> PageProperty:
         value_data: Optional[dict] = None
         if instance is not None:
-            value_data = instance.properties_data[self._attribute]  # noqa
+            value_data = instance.properties_data[self._property_name]  # noqa
 
-        return self._PROP_CLS(data=value_data, property_name=self.__attribute)
+        return self._PROP_CLS(data=value_data, property_name=self._property_name)
 
 
 class TextField(Field[TextProperty]):

@@ -46,15 +46,15 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
 class PageProperty(PagePropertyBase):
     @property
     def id(self) -> str:
-        return self._data['id']
+        return self.data['id']
 
     @property
     def type(self) -> str:
-        return self._data['type']
+        return self.data['type']
 
 
 @attr.s(frozen=True)
-class ComplexPageProperty(PagePropertyBase):
+class ComplexPageProperty(PageProperty):
     @property
     def _content_data_dict(self) -> dict:
         data = self._content_data
@@ -63,7 +63,7 @@ class ComplexPageProperty(PagePropertyBase):
 
 
 @attr.s(frozen=True)
-class SimpleStringPageProperty(PagePropertyBase):
+class SimpleStringPageProperty(PageProperty):
     @property
     def _content_data_str(self) -> str:
         data = self._content_data
