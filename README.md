@@ -61,7 +61,7 @@ async def get_reading_list() -> ReadingList:
 
 
 def print_reading_list(reading_list: ReadingList) -> None:
-    for item in reading_list.items:
+    for item in reading_list.items():
         print(f'[{item.type.name}] {item.name.one_item.content}')
 
 

@@ -42,33 +42,36 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
         )
 
 
+_PROP_ATTR_TV = TypeVar('_PROP_ATTR_TV')
+
+
+class PropertyAttrDescr(Generic[_PROP_ATTR_TV]):
+    __slots__ = ('__key',)
+
+    def __init__(self, key: Optional[tuple[str, ...]] = None):
+        self.__key = key
+
+    def __set_name__(self, owner: PagePropertyBase, name: str) -> None:
+        if self.__key is None:
+            self.__key = (name,)
+
+    @property
+    def _key(self) -> tuple[str, ...]:
+        assert self.__key is not None
+        return self.__key
+
+    def __get__(self, instance: PagePropertyBase, owner: Type[PagePropertyBase]) -> _PROP_ATTR_TV:
+        data: Any = instance.data
+        for part in self._key:
+            assert isinstance(data, dict)
+            data = data[part]
+        return data
+
+
 @attr.s(frozen=True)
 class PageProperty(PagePropertyBase):
-    @property
-    def id(self) -> str:
-        return self.data['id']
-
-    @property
-    def type(self) -> str:
-        return self.data['type']
-
-
-@attr.s(frozen=True)
-class ComplexPageProperty(PageProperty):
-    @property
-    def _content_data_dict(self) -> dict:
-        data = self._content_data
-        assert isinstance(data, dict)
-        return data
-
-
-@attr.s(frozen=True)
-class SimpleStringPageProperty(PageProperty):
-    @property
-    def _content_data_str(self) -> str:
-        data = self._content_data
-        assert isinstance(data, str)
-        return data
+    id: PropertyAttrDescr[str] = PropertyAttrDescr()
+    type: PropertyAttrDescr[str] = PropertyAttrDescr()
 
 
 _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
@@ -101,15 +104,13 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
 
 
 @attr.s(frozen=True)
-class TextProperty(ComplexPageProperty):
+class TextProperty(PageProperty):
     """Property of type ``'text'``"""
 
     _OBJECT_TYPE_STR = 'text'
     _FILTER_FACT_CLS = TextFilterFactory
 
-    @property
-    def content(self) -> str:
-        return self._content_data_dict['content']
+    content: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'content'))
 
 
 @attr.s(frozen=True)
@@ -119,11 +120,7 @@ class NumberProperty(PageProperty):
     _OBJECT_TYPE_STR = 'number'
     _FILTER_FACT_CLS = NumberFilterFactory
 
-    @property
-    def value(self) -> Union[int, float]:
-        value = self._content_data
-        assert isinstance(value, (int, float))
-        return value
+    number: PropertyAttrDescr[Union[int, float]] = PropertyAttrDescr()
 
 
 @attr.s(frozen=True)
@@ -133,51 +130,31 @@ class CheckboxProperty(PageProperty):
     _OBJECT_TYPE_STR = 'checkbox'
     _FILTER_FACT_CLS = CheckboxFilterFactory
 
-    @property
-    def value(self) -> bool:
-        value = self._content_data
-        assert isinstance(value, bool)
-        return value
+    checkbox: PropertyAttrDescr[Union[int, float]] = PropertyAttrDescr()
 
 
 @attr.s(frozen=True)
-class SelectProperty(ComplexPageProperty):
+class SelectProperty(PageProperty):
     """Property of type ``'select'``"""
 
     _OBJECT_TYPE_STR = 'select'
     _FILTER_FACT_CLS = SelectFilterFactory
 
-    @property
-    def option_id(self) -> str:
-        return self._content_data_dict['id']
-
-    @property
-    def name(self) -> str:
-        return self._content_data_dict['name']
-
-    @property
-    def color(self) -> str:
-        return self._content_data_dict['color']
+    option_id: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'id'))
+    name: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'name'))
+    color: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'color'))
 
 
 @attr.s(frozen=True)
-class MultiSelectProperty(ComplexPageProperty):
+class MultiSelectProperty(PageProperty):
     """Property of type ``'select'``"""
 
     _OBJECT_TYPE_STR = 'multi_select'
     _FILTER_FACT_CLS = MultiSelectFilterFactory
 
-    @property
-    def option_id(self) -> str:
-        return self._content_data_dict['id']
-
-    @property
-    def name(self) -> str:
-        return self._content_data_dict['name']
-
-    @property
-    def color(self) -> str:
-        return self._content_data_dict['color']
+    option_id: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'id'))
+    name: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'name'))
+    color: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'color'))
 
 
 @attr.s(frozen=True)
