@@ -52,6 +52,7 @@ async def get_reading_list() -> ReadingList:
     notion_token = os.environ.get('NOTION_TOKEN')
     notion = AsyncClient(auth=notion_token)
     data = await notion.databases.query(
+        # Construct filter using model's field
         **Query(database_id).filter(
             ReadingList.item.type.filter.equals('Book')
         ).serialize()
