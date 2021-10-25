@@ -51,7 +51,7 @@ _RESULT_ITEM_TV = TypeVar('_RESULT_ITEM_TV', bound=NotionPage)
 
 
 @attr.s(frozen=True)
-class NotionList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
+class NotionPageList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
     """
     Represents a page object list returned by the Notion API
     """

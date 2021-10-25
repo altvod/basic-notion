@@ -21,7 +21,7 @@ pip install basic-notion
 
 ### Describing Models
 ```python
-from basic_notion.base import NotionPage, NotionList
+from basic_notion.base import NotionPage, NotionPageList
 from basic_notion.field import SelectField, TitleField 
 
 
@@ -30,9 +30,8 @@ class ReadingListItem(NotionPage):
     name: TitleField = TitleField(property_name='Name')
 
 
-class ReadingList(NotionList[ReadingListItem]):
+class ReadingList(NotionPageList[ReadingListItem]):
     _ITEM_CLS = ReadingListItem
-
 ```
 
 ### Using With `notion-sdk-py`
@@ -52,9 +51,16 @@ async def get_reading_list() -> ReadingList:
     notion_token = os.environ.get('NOTION_TOKEN')
     notion = AsyncClient(auth=notion_token)
     data = await notion.databases.query(
-        # Construct filter using model's field
-        **Query(database_id).filter(
+        **Query.database(
+            database_id
+        ).filter(
+            # Construct filter using model's field
+            # (only one filter expression is supported)
             ReadingList.item.type.filter.equals('Book')
+        ).sorts(
+            # And, similarly, the result's sorting
+            # (multiple fields can be listed here)
+            ReadingList.item.name.sort.ascending
         ).serialize()
     )
     return ReadingList(data=data)

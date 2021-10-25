@@ -7,6 +7,7 @@ from basic_notion.filter import (
     FilterFactory, TextFilterFactory, NumberFilterFactory, CheckboxFilterFactory,
     SelectFilterFactory, MultiSelectFilterFactory,
 )
+from basic_notion.sort import SortFactory
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
@@ -40,6 +41,10 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
             property_name=self._property_name,
             property_type_name=self._OBJECT_TYPE_STR,
         )
+
+    @property
+    def sort(self) -> SortFactory:
+        return SortFactory(property_name=self._property_name)
 
 
 _PROP_ATTR_TV = TypeVar('_PROP_ATTR_TV')
