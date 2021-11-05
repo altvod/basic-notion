@@ -15,13 +15,13 @@ class PropertyType(Enum):
 
 @attr.s(frozen=True)
 class NotionItemBase(abc.ABC):
-    _OBJECT_TYPE_KEY_STR: ClassVar[str] = 'object'
-    _OBJECT_TYPE_STR: ClassVar[str]
+    _OBJECT_TYPE_KEY_STR: ClassVar[str] = ''
+    _OBJECT_TYPE_STR: ClassVar[str] = ''
 
     _data: Optional[dict[str, Any]] = attr.ib(kw_only=True, default=None)
 
     def __attrs_post_init__(self) -> None:
-        if self._data is not None:
+        if self._data is not None and self._OBJECT_TYPE_KEY_STR and self._OBJECT_TYPE_STR:
             assert self._data[self._OBJECT_TYPE_KEY_STR] == self._OBJECT_TYPE_STR
 
     @property
@@ -44,6 +44,7 @@ class NotionPage(NotionItem):
     Represents a page object returned by the Notion API
     """
 
+    _OBJECT_TYPE_KEY_STR = 'object'
     _OBJECT_TYPE_STR = 'page'
 
 
@@ -57,6 +58,7 @@ class NotionPageList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
     """
 
     _ITEM_CLS: ClassVar[Optional[Type[_RESULT_ITEM_TV]]] = None
+    _OBJECT_TYPE_KEY_STR = 'object'
     _OBJECT_TYPE_STR = 'list'
 
     @classmethod

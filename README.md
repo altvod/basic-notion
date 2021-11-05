@@ -22,12 +22,14 @@ pip install basic-notion
 ### Describing Models
 ```python
 from basic_notion.base import NotionPage, NotionPageList
-from basic_notion.field import SelectField, TitleField 
+from basic_notion.field import SelectField, TitleField, MultiSelectField
 
 
 class ReadingListItem(NotionPage):
     type: SelectField = SelectField(property_name='Type')
     name: TitleField = TitleField(property_name='Name')
+    status: SelectField = SelectField(property_name='Status')
+    authors: MultiSelectField = MultiSelectField(property_name='Author')
 
 
 class ReadingList(NotionPageList[ReadingListItem]):

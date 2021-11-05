@@ -151,15 +151,24 @@ class SelectProperty(PageProperty):
 
 
 @attr.s(frozen=True)
-class MultiSelectProperty(PageProperty):
-    """Property of type ``'select'``"""
+class MultiSelectPropertyItem(PageProperty):
+    """Item of a multi-select list property"""
+
+    _OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
+    _OBJECT_TYPE_STR = ''
+
+    option_id: PropertyAttrDescr[str] = PropertyAttrDescr(key=('id',))
+    name: PropertyAttrDescr[str] = PropertyAttrDescr(key=('name',))
+    color: PropertyAttrDescr[str] = PropertyAttrDescr(key=('color',))
+
+
+@attr.s(frozen=True)
+class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
+    """Property of type ``'multi_select'``"""
 
     _OBJECT_TYPE_STR = 'multi_select'
+    _ITEM_CLS = MultiSelectPropertyItem
     _FILTER_FACT_CLS = MultiSelectFilterFactory
-
-    option_id: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'id'))
-    name: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'name'))
-    color: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'color'))
 
 
 @attr.s(frozen=True)
