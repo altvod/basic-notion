@@ -8,6 +8,7 @@ from basic_notion.filter import (
     SelectFilterFactory, MultiSelectFilterFactory,
 )
 from basic_notion.sort import SortFactory
+from basic_notion.attr import ItemAttrDescriptor
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
@@ -47,36 +48,10 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
         return SortFactory(property_name=self._property_name)
 
 
-_PROP_ATTR_TV = TypeVar('_PROP_ATTR_TV')
-
-
-class PropertyAttrDescr(Generic[_PROP_ATTR_TV]):
-    __slots__ = ('__key',)
-
-    def __init__(self, key: Optional[tuple[str, ...]] = None):
-        self.__key = key
-
-    def __set_name__(self, owner: PagePropertyBase, name: str) -> None:
-        if self.__key is None:
-            self.__key = (name,)
-
-    @property
-    def _key(self) -> tuple[str, ...]:
-        assert self.__key is not None
-        return self.__key
-
-    def __get__(self, instance: PagePropertyBase, owner: Type[PagePropertyBase]) -> _PROP_ATTR_TV:
-        data: Any = instance.data
-        for part in self._key:
-            assert isinstance(data, dict)
-            data = data[part]
-        return data
-
-
 @attr.s(frozen=True)
 class PageProperty(PagePropertyBase):
-    id: PropertyAttrDescr[str] = PropertyAttrDescr()
-    type: PropertyAttrDescr[str] = PropertyAttrDescr()
+    id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    type: ItemAttrDescriptor[str] = ItemAttrDescriptor()
 
 
 _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
@@ -115,7 +90,7 @@ class TextProperty(PageProperty):
     _OBJECT_TYPE_STR = 'text'
     _FILTER_FACT_CLS = TextFilterFactory
 
-    content: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'content'))
+    content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'content'))
 
 
 @attr.s(frozen=True)
@@ -125,7 +100,7 @@ class NumberProperty(PageProperty):
     _OBJECT_TYPE_STR = 'number'
     _FILTER_FACT_CLS = NumberFilterFactory
 
-    number: PropertyAttrDescr[Union[int, float]] = PropertyAttrDescr()
+    number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
 
 @attr.s(frozen=True)
@@ -135,7 +110,7 @@ class CheckboxProperty(PageProperty):
     _OBJECT_TYPE_STR = 'checkbox'
     _FILTER_FACT_CLS = CheckboxFilterFactory
 
-    checkbox: PropertyAttrDescr[Union[int, float]] = PropertyAttrDescr()
+    checkbox: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
 
 @attr.s(frozen=True)
@@ -145,9 +120,9 @@ class SelectProperty(PageProperty):
     _OBJECT_TYPE_STR = 'select'
     _FILTER_FACT_CLS = SelectFilterFactory
 
-    option_id: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'id'))
-    name: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'name'))
-    color: PropertyAttrDescr[str] = PropertyAttrDescr(key=(_OBJECT_TYPE_STR, 'color'))
+    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'id'))
+    name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'name'))
+    color: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'color'))
 
 
 @attr.s(frozen=True)
@@ -157,9 +132,9 @@ class MultiSelectPropertyItem(PageProperty):
     _OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
     _OBJECT_TYPE_STR = ''
 
-    option_id: PropertyAttrDescr[str] = PropertyAttrDescr(key=('id',))
-    name: PropertyAttrDescr[str] = PropertyAttrDescr(key=('name',))
-    color: PropertyAttrDescr[str] = PropertyAttrDescr(key=('color',))
+    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    name: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    color: ItemAttrDescriptor[str] = ItemAttrDescriptor()
 
 
 @attr.s(frozen=True)

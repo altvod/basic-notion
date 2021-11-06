@@ -1,13 +1,13 @@
 from typing import ClassVar, Generic, Optional, Type, TypeVar
 
-from basic_notion.base import NotionItem
+from basic_notion.page import NotionPage
 from basic_notion.property import (
     PageProperty, TextProperty, NumberProperty, CheckboxProperty,
     SelectProperty, MultiSelectProperty, TitleProperty,
 )
 
 
-_OWNER_TV = TypeVar('_OWNER_TV', bound=NotionItem)
+_OWNER_TV = TypeVar('_OWNER_TV', bound=NotionPage)
 _PROP_VALUE_TV = TypeVar('_PROP_VALUE_TV', bound=PageProperty)
 
 

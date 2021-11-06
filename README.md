@@ -21,7 +21,7 @@ pip install basic-notion
 
 ### Describing Models
 ```python
-from basic_notion.base import NotionPage, NotionPageList
+from basic_notion.page import NotionPage, NotionPageList
 from basic_notion.field import SelectField, TitleField, MultiSelectField
 
 
