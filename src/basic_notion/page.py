@@ -1,9 +1,18 @@
-from typing import ClassVar, Generic, Optional, Type, TypeVar
+from __future__ import annotations
+
+from typing import ClassVar, Generic, Optional, Type, TypeVar, TYPE_CHECKING
+
+import attr
 
 from basic_notion.base import NotionItemBase
 from basic_notion.attr import ItemAttrDescriptor
+from basic_notion.parent import ParentDatabase, ParentPage
+
+if TYPE_CHECKING:
+    from basic_notion.parent import Parent
 
 
+@attr.s(frozen=True)
 class NotionPage(NotionItemBase):
     """
     Represents a page object returned by the Notion API
@@ -19,8 +28,27 @@ class NotionPage(NotionItemBase):
     last_edited_time: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     cover: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
     icon: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
-    # For usage by fields
+
+    # For internal usage
     properties_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('properties',))
+    parent_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('parent',))
+
+    @property
+    def parent(self) -> Parent:
+        parent_type = self.parent_data['type']
+        parent: Parent
+
+        # TODO: This would be a great place to use match-case,
+        #   but mypy doesn't support it yet: https://github.com/python/mypy/pull/10191
+
+        if parent_type == ParentPage._OBJECT_TYPE_STR:
+            parent = ParentPage(data=self.parent_data)
+        elif parent_type == ParentDatabase._OBJECT_TYPE_STR:
+            parent = ParentDatabase(data=self.parent_data)
+        else:
+            raise ValueError(f'Unknown parent type: {parent_type}')
+
+        return parent
 
     # TODO: properties that convert `ct` and `let` into datetimes. Something wrong with isoformat
 
@@ -28,6 +56,7 @@ class NotionPage(NotionItemBase):
 _RESULT_ITEM_TV = TypeVar('_RESULT_ITEM_TV', bound=NotionPage)
 
 
+@attr.s(frozen=True)
 class NotionPageList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
     """
     Represents a page object list returned by the Notion API

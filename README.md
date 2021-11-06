@@ -84,6 +84,9 @@ asyncio.run(main())
 
 See `notion-sdk-py`'s homepage for more info on the client: https://github.com/ramnes/notion-sdk-py
 
+You can also see the test files in `tests/` for more examples
+and more thorough usage of attributes and properties
+
 ## Development and Testing
 
 ### Configuring the test environment
@@ -122,6 +125,14 @@ And always validate typing:
 ```bash
 mypy src/basic_notion
 ```
+
+Or simply
+
+```bash
+make test
+```
+
+(it will run all test commands)
 
 ## Links
 

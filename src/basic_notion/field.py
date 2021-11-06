@@ -47,24 +47,36 @@ class Field(Generic[_PROP_VALUE_TV]):
 
 
 class TextField(Field[TextProperty]):
+    __slots__ = ()
+
     _PROP_CLS = TextProperty
 
 
 class NumberField(Field[NumberProperty]):
+    __slots__ = ()
+
     _PROP_CLS = NumberProperty
 
 
 class CheckboxField(Field[CheckboxProperty]):
+    __slots__ = ()
+
     _PROP_CLS = CheckboxProperty
 
 
 class SelectField(Field[SelectProperty]):
+    __slots__ = ()
+
     _PROP_CLS = SelectProperty
 
 
 class MultiSelectField(Field[MultiSelectProperty]):
+    __slots__ = ()
+
     _PROP_CLS = MultiSelectProperty
 
 
 class TitleField(Field[TitleProperty]):
+    __slots__ = ()
+
     _PROP_CLS = TitleProperty
