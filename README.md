@@ -84,6 +84,45 @@ asyncio.run(main())
 
 See `notion-sdk-py`'s homepage for more info on the client: https://github.com/ramnes/notion-sdk-py
 
+## Development and Testing
+
+### Configuring the test environment
+
+Install
+
+```bash
+pip install -Ue .[testing]
+```
+
+Create file `.env` with the following content:
+
+```
+NOTION_API_TOKEN=<your-notion-token>
+DATABASE_ID=<your-database-id>
+ROOT_PAGE_ID=<your-page-id>
+```
+
+Where:
+- `<your-notion-token>` is your Notion API developer's token
+  (you will need to create a Notion integration for this: https://www.notion.so/my-integrations);
+- `<your-database-id>` is a database that use can use for test purposes
+  (with read/write access and a schema corresponding to the model structure from `tests/models.py`);
+- `<your-page-id>` is the ID of a page where the tests will create new pages.
+
+### Testing
+
+Run the tests:
+
+```bash
+pytest tests
+```
+
+And always validate typing:
+
+```bash
+mypy src/basic_notion
+```
+
 ## Links
 
 Homepage on GitHub: https://github.com/altvod/basic-notion

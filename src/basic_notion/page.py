@@ -1,12 +1,9 @@
 from typing import ClassVar, Generic, Optional, Type, TypeVar
 
-import attr
-
 from basic_notion.base import NotionItemBase
 from basic_notion.attr import ItemAttrDescriptor
 
 
-@attr.s(frozen=True)
 class NotionPage(NotionItemBase):
     """
     Represents a page object returned by the Notion API
@@ -23,7 +20,7 @@ class NotionPage(NotionItemBase):
     cover: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
     icon: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
     # For usage by fields
-    properties_data: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('properties',))
+    properties_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('properties',))
 
     # TODO: properties that convert `ct` and `let` into datetimes. Something wrong with isoformat
 
@@ -31,7 +28,6 @@ class NotionPage(NotionItemBase):
 _RESULT_ITEM_TV = TypeVar('_RESULT_ITEM_TV', bound=NotionPage)
 
 
-@attr.s(frozen=True)
 class NotionPageList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
     """
     Represents a page object list returned by the Notion API

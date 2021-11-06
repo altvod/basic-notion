@@ -47,6 +47,9 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
     def sort(self) -> SortFactory:
         return SortFactory(property_name=self._property_name)
 
+    def get_text(self) -> str:
+        return ''
+
 
 @attr.s(frozen=True)
 class PageProperty(PagePropertyBase):
@@ -62,6 +65,8 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     """Paginated property base class"""
 
     _ITEM_CLS: ClassVar[Type[_PAG_PROP_ITEM_TV]]
+
+    _text_sep: str = attr.ib(kw_only=True, default=',')
 
     @property
     def _content_data_list(self) -> list[dict]:
@@ -82,6 +87,9 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
         assert len(items) == 1
         return items[0]
 
+    def get_text(self) -> str:
+        return self._text_sep.join([item.get_text() for item in self.items])
+
 
 @attr.s(frozen=True)
 class TextProperty(PageProperty):
@@ -92,6 +100,9 @@ class TextProperty(PageProperty):
 
     content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'content'))
 
+    def get_text(self) -> str:
+        return self.content
+
 
 @attr.s(frozen=True)
 class NumberProperty(PageProperty):
@@ -101,6 +112,9 @@ class NumberProperty(PageProperty):
     _FILTER_FACT_CLS = NumberFilterFactory
 
     number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
+
+    def get_text(self) -> str:
+        return str(self.number)
 
 
 @attr.s(frozen=True)
@@ -124,6 +138,9 @@ class SelectProperty(PageProperty):
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'name'))
     color: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'color'))
 
+    def get_text(self) -> str:
+        return self.name
+
 
 @attr.s(frozen=True)
 class MultiSelectPropertyItem(PageProperty):
@@ -132,9 +149,12 @@ class MultiSelectPropertyItem(PageProperty):
     _OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
     _OBJECT_TYPE_STR = ''
 
-    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     color: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+
+    def get_text(self) -> str:
+        return self.name
 
 
 @attr.s(frozen=True)
