@@ -18,8 +18,8 @@ class NotionPage(NotionItemBase):
     Represents a page object returned by the Notion API
     """
 
-    _OBJECT_TYPE_KEY_STR = 'object'
-    _OBJECT_TYPE_STR = 'page'
+    OBJECT_TYPE_KEY_STR = 'object'
+    OBJECT_TYPE_STR = 'page'
 
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor()
@@ -41,9 +41,9 @@ class NotionPage(NotionItemBase):
         # TODO: This would be a great place to use match-case,
         #   but mypy doesn't support it yet: https://github.com/python/mypy/pull/10191
 
-        if parent_type == ParentPage._OBJECT_TYPE_STR:
+        if parent_type == ParentPage.OBJECT_TYPE_STR:
             parent = ParentPage(data=self.parent_data)
-        elif parent_type == ParentDatabase._OBJECT_TYPE_STR:
+        elif parent_type == ParentDatabase.OBJECT_TYPE_STR:
             parent = ParentDatabase(data=self.parent_data)
         else:
             raise ValueError(f'Unknown parent type: {parent_type}')
@@ -62,14 +62,14 @@ class NotionPageList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
     Represents a page object list returned by the Notion API
     """
 
-    _ITEM_CLS: ClassVar[Optional[Type[_RESULT_ITEM_TV]]] = None
-    _OBJECT_TYPE_KEY_STR = 'object'
-    _OBJECT_TYPE_STR = 'list'
+    ITEM_CLS: ClassVar[Optional[Type[_RESULT_ITEM_TV]]] = None
+    OBJECT_TYPE_KEY_STR = 'object'
+    OBJECT_TYPE_STR = 'list'
 
     @classmethod
     def _get_item_cls(cls) -> Type[_RESULT_ITEM_TV]:
-        assert cls._ITEM_CLS is not None
-        return cls._ITEM_CLS
+        assert cls.ITEM_CLS is not None
+        return cls.ITEM_CLS
 
     def _make_result_item(self, data: dict) -> _RESULT_ITEM_TV:
         return self._get_item_cls()(data=data)

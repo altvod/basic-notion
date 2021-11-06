@@ -10,4 +10,4 @@ class ReadingListItem(NotionPage):
 
 
 class ReadingList(NotionPageList[ReadingListItem]):
-    _ITEM_CLS = ReadingListItem
+    ITEM_CLS = ReadingListItem

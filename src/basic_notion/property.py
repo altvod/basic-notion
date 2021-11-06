@@ -21,14 +21,14 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
     Base class for properties of Notion objects.
     """
 
-    _OBJECT_TYPE_KEY_STR = 'type'
-    _FILTER_FACT_CLS: ClassVar[Optional[Type[_FILTER_FACT_TV]]] = None
+    OBJECT_TYPE_KEY_STR = 'type'
+    FILTER_FACT_CLS: ClassVar[Optional[Type[_FILTER_FACT_TV]]] = None
 
     _property_name: str = attr.ib(kw_only=True, default=None)
 
     @property
     def _content_data(self) -> Any:
-        return self.data[self._OBJECT_TYPE_STR]
+        return self.data[self.OBJECT_TYPE_STR]
 
     @property
     def property_name(self) -> str:
@@ -36,11 +36,11 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
 
     @property
     def filter(self) -> _FILTER_FACT_TV:
-        if self._FILTER_FACT_CLS is None:
-            raise TypeError(f'Filters are not defined for {self._OBJECT_TYPE_STR!r} properties')
-        return self._FILTER_FACT_CLS(
+        if self.FILTER_FACT_CLS is None:
+            raise TypeError(f'Filters are not defined for {self.OBJECT_TYPE_STR!r} properties')
+        return self.FILTER_FACT_CLS(
             property_name=self._property_name,
-            property_type_name=self._OBJECT_TYPE_STR,
+            property_type_name=self.OBJECT_TYPE_STR,
         )
 
     @property
@@ -64,7 +64,7 @@ _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
 class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     """Paginated property base class"""
 
-    _ITEM_CLS: ClassVar[Type[_PAG_PROP_ITEM_TV]]
+    ITEM_CLS: ClassVar[Type[_PAG_PROP_ITEM_TV]]
 
     _text_sep: str = attr.ib(kw_only=True, default=',')
 
@@ -77,7 +77,7 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     @property
     def items(self) -> list[_PAG_PROP_ITEM_TV]:
         return [
-            self._ITEM_CLS(data=item_data, property_name=self._property_name)
+            self.ITEM_CLS(data=item_data, property_name=self._property_name)
             for item_data in self._content_data_list
         ]
 
@@ -95,10 +95,10 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
 class TextProperty(PageProperty):
     """Property of type ``'text'``"""
 
-    _OBJECT_TYPE_STR = 'text'
-    _FILTER_FACT_CLS = TextFilterFactory
+    OBJECT_TYPE_STR = 'text'
+    FILTER_FACT_CLS = TextFilterFactory
 
-    content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'content'))
+    content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'content'))
 
     def get_text(self) -> str:
         return self.content
@@ -108,8 +108,8 @@ class TextProperty(PageProperty):
 class NumberProperty(PageProperty):
     """Property of type ``'number'``"""
 
-    _OBJECT_TYPE_STR = 'number'
-    _FILTER_FACT_CLS = NumberFilterFactory
+    OBJECT_TYPE_STR = 'number'
+    FILTER_FACT_CLS = NumberFilterFactory
 
     number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
@@ -121,8 +121,8 @@ class NumberProperty(PageProperty):
 class CheckboxProperty(PageProperty):
     """Property of type ``'checkbox'``"""
 
-    _OBJECT_TYPE_STR = 'checkbox'
-    _FILTER_FACT_CLS = CheckboxFilterFactory
+    OBJECT_TYPE_STR = 'checkbox'
+    FILTER_FACT_CLS = CheckboxFilterFactory
 
     checkbox: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
@@ -131,12 +131,12 @@ class CheckboxProperty(PageProperty):
 class SelectProperty(PageProperty):
     """Property of type ``'select'``"""
 
-    _OBJECT_TYPE_STR = 'select'
-    _FILTER_FACT_CLS = SelectFilterFactory
+    OBJECT_TYPE_STR = 'select'
+    FILTER_FACT_CLS = SelectFilterFactory
 
-    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'id'))
-    name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'name'))
-    color: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(_OBJECT_TYPE_STR, 'color'))
+    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'))
+    name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'name'))
+    color: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'color'))
 
     def get_text(self) -> str:
         return self.name
@@ -146,8 +146,8 @@ class SelectProperty(PageProperty):
 class MultiSelectPropertyItem(PageProperty):
     """Item of a multi-select list property"""
 
-    _OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
-    _OBJECT_TYPE_STR = ''
+    OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
+    OBJECT_TYPE_STR = ''
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor()
@@ -161,15 +161,15 @@ class MultiSelectPropertyItem(PageProperty):
 class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
     """Property of type ``'multi_select'``"""
 
-    _OBJECT_TYPE_STR = 'multi_select'
-    _ITEM_CLS = MultiSelectPropertyItem
-    _FILTER_FACT_CLS = MultiSelectFilterFactory
+    OBJECT_TYPE_STR = 'multi_select'
+    ITEM_CLS = MultiSelectPropertyItem
+    FILTER_FACT_CLS = MultiSelectFilterFactory
 
 
 @attr.s(frozen=True)
 class TitleProperty(PaginatedProperty[TextProperty]):
     """Property of type ``'title'``"""
 
-    _OBJECT_TYPE_STR = 'title'
-    _ITEM_CLS = TextProperty
-    _FILTER_FACT_CLS = TextFilterFactory
+    OBJECT_TYPE_STR = 'title'
+    ITEM_CLS = TextProperty
+    FILTER_FACT_CLS = TextFilterFactory

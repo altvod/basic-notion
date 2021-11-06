@@ -19,7 +19,7 @@ class Field(Generic[_PROP_VALUE_TV]):
 
     __slots__ = ('__property_name', '__type_name')
 
-    _PROP_CLS: ClassVar[Type[_PROP_VALUE_TV]]
+    PROP_CLS: ClassVar[Type[_PROP_VALUE_TV]]
 
     def __init__(self, property_name: Optional[str] = None) -> None:
         self.__property_name = property_name
@@ -43,40 +43,40 @@ class Field(Generic[_PROP_VALUE_TV]):
         if instance is not None:
             value_data = instance.properties_data[self._property_name]  # noqa
 
-        return self._PROP_CLS(data=value_data, property_name=self._property_name)
+        return self.PROP_CLS(data=value_data, property_name=self._property_name)
 
 
 class TextField(Field[TextProperty]):
     __slots__ = ()
 
-    _PROP_CLS = TextProperty
+    PROP_CLS = TextProperty
 
 
 class NumberField(Field[NumberProperty]):
     __slots__ = ()
 
-    _PROP_CLS = NumberProperty
+    PROP_CLS = NumberProperty
 
 
 class CheckboxField(Field[CheckboxProperty]):
     __slots__ = ()
 
-    _PROP_CLS = CheckboxProperty
+    PROP_CLS = CheckboxProperty
 
 
 class SelectField(Field[SelectProperty]):
     __slots__ = ()
 
-    _PROP_CLS = SelectProperty
+    PROP_CLS = SelectProperty
 
 
 class MultiSelectField(Field[MultiSelectProperty]):
     __slots__ = ()
 
-    _PROP_CLS = MultiSelectProperty
+    PROP_CLS = MultiSelectProperty
 
 
 class TitleField(Field[TitleProperty]):
     __slots__ = ()
 
-    _PROP_CLS = TitleProperty
+    PROP_CLS = TitleProperty
