@@ -9,6 +9,11 @@ from basic_notion.filter import (
 )
 from basic_notion.sort import SortFactory
 from basic_notion.attr import ItemAttrDescriptor
+from basic_notion.data_gen import (
+    PaginatedPropertyDataGen, TextPropertyDataGen,
+    CheckboxPropertyDataGen, NumberPropertyDataGen,
+    SelectPropertyDataGen,
+)
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
@@ -65,6 +70,7 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     """Paginated property base class"""
 
     ITEM_CLS: ClassVar[Type[_PAG_PROP_ITEM_TV]]
+    DATA_GEN_CLS = PaginatedPropertyDataGen
 
     _text_sep: str = attr.ib(kw_only=True, default=',')
 
@@ -97,6 +103,7 @@ class TextProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'text'
     FILTER_FACT_CLS = TextFilterFactory
+    DATA_GEN_CLS = TextPropertyDataGen
 
     content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'content'))
 
@@ -110,6 +117,7 @@ class NumberProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'number'
     FILTER_FACT_CLS = NumberFilterFactory
+    DATA_GEN_CLS = NumberPropertyDataGen
 
     number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
@@ -123,6 +131,7 @@ class CheckboxProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'checkbox'
     FILTER_FACT_CLS = CheckboxFilterFactory
+    DATA_GEN_CLS = CheckboxPropertyDataGen
 
     checkbox: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
@@ -133,6 +142,7 @@ class SelectProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'select'
     FILTER_FACT_CLS = SelectFilterFactory
+    DATA_GEN_CLS = SelectPropertyDataGen
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'name'))
@@ -148,6 +158,7 @@ class MultiSelectPropertyItem(PageProperty):
 
     OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
     OBJECT_TYPE_STR = ''
+    DATA_GEN_CLS = SelectPropertyDataGen
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor()

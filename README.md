@@ -38,6 +38,8 @@ class ReadingList(NotionPageList[ReadingListItem]):
 
 ### Using With `notion-sdk-py`
 
+Fetching a list of pages from a database
+
 ```python
 import asyncio
 import os
@@ -49,8 +51,8 @@ from models import ReadingList
 
 
 async def get_reading_list() -> ReadingList:
-    database_id = os.environ.get('DATABASE_ID')
-    notion_token = os.environ.get('NOTION_TOKEN')
+    database_id = os.environ['DATABASE_ID']
+    notion_token = os.environ['NOTION_TOKEN']
     notion = AsyncClient(auth=notion_token)
     data = await notion.databases.query(
         **Query.database(
@@ -82,9 +84,31 @@ asyncio.run(main())
 ```
 (assuming you put the previous code in `models.py`)
 
+Creating a new page
+
+```python
+from notion_client import Client
+from models import ReadingListItem
+
+def create_page(client: Client, database_id: str) -> ReadingListItem:
+    page_data = ReadingListItem.generate(
+        parent={'database_id': database_id},
+        type='Book',
+        name=['The Best Book Ever'],
+        authors=['John Doe'],
+    )
+    response = client.pages.create(**page_data)
+    item = ReadingListItem(data=response)
+    # assert len(item.id) == 36
+    # assert item.type.name == 'Book'
+    # assert item.name.get_text() == 'The Best Book Ever'
+    # assert item.authors.get_text() == 'John Doe'
+    return item
+```
+
 See `notion-sdk-py`'s homepage for more info on the client: https://github.com/ramnes/notion-sdk-py
 
-You can also see the test files in `tests/` for more examples
+You can also see the files in `tests/` for more examples
 and more thorough usage of attributes and properties
 
 ## Development and Testing

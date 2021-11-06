@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from typing import ClassVar, Generic, Optional, Type, TypeVar, TYPE_CHECKING
 
 import attr
@@ -7,9 +8,11 @@ import attr
 from basic_notion.base import NotionItemBase
 from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.parent import ParentDatabase, ParentPage
+from basic_notion.data_gen import PageDataGen
 
 if TYPE_CHECKING:
     from basic_notion.parent import Parent
+    from basic_notion.property import PageProperty
 
 
 @attr.s(frozen=True)
@@ -20,6 +23,7 @@ class NotionPage(NotionItemBase):
 
     OBJECT_TYPE_KEY_STR = 'object'
     OBJECT_TYPE_STR = 'page'
+    DATA_GEN_CLS = PageDataGen
 
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor()
@@ -32,6 +36,15 @@ class NotionPage(NotionItemBase):
     # For internal usage
     properties_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('properties',))
     parent_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('parent',))
+
+    @classmethod
+    def get_class_fields(cls) -> dict[str, PageProperty]:
+        from basic_notion.property import PageProperty
+        return {
+            name: prop
+            for name, prop in inspect.getmembers(cls)
+            if isinstance(prop, PageProperty)
+        }
 
     @property
     def parent(self) -> Parent:

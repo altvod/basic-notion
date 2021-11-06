@@ -2,11 +2,13 @@ import attr
 
 from basic_notion.base import NotionItemBase
 from basic_notion.attr import ItemAttrDescriptor
+from basic_notion.data_gen import ParentDataGen
 
 
 @attr.s(frozen=True)
 class Parent(NotionItemBase):
     OBJECT_TYPE_KEY_STR = 'type'
+    DATA_GEN_CLS = ParentDataGen
 
 
 @attr.s(frozen=True)
