@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from basic_notion.property import PageProperty
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class NotionPage(NotionItemBase):
     """
     Represents a page object returned by the Notion API
@@ -26,7 +26,7 @@ class NotionPage(NotionItemBase):
     DATA_GEN_CLS = PageDataGen
 
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
-    archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor()
+    archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
     url: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     created_time: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     last_edited_time: ItemAttrDescriptor[str] = ItemAttrDescriptor()
@@ -69,7 +69,7 @@ class NotionPage(NotionItemBase):
 _RESULT_ITEM_TV = TypeVar('_RESULT_ITEM_TV', bound=NotionPage)
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class NotionPageList(NotionItemBase, Generic[_RESULT_ITEM_TV]):
     """
     Represents a page object list returned by the Notion API

@@ -20,7 +20,7 @@ _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
 _CONTENT_TV = TypeVar('_CONTENT_TV')
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
     """
     Base class for properties of Notion objects.
@@ -56,7 +56,7 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
         return ''
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class PageProperty(PagePropertyBase):
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     type: ItemAttrDescriptor[str] = ItemAttrDescriptor()
@@ -65,7 +65,7 @@ class PageProperty(PagePropertyBase):
 _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     """Paginated property base class"""
 
@@ -97,7 +97,7 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
         return self._text_sep.join([item.get_text() for item in self.items])
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class TextProperty(PageProperty):
     """Property of type ``'text'``"""
 
@@ -111,7 +111,7 @@ class TextProperty(PageProperty):
         return self.content
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class NumberProperty(PageProperty):
     """Property of type ``'number'``"""
 
@@ -125,7 +125,7 @@ class NumberProperty(PageProperty):
         return str(self.number)
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class CheckboxProperty(PageProperty):
     """Property of type ``'checkbox'``"""
 
@@ -136,7 +136,7 @@ class CheckboxProperty(PageProperty):
     checkbox: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class SelectProperty(PageProperty):
     """Property of type ``'select'``"""
 
@@ -152,7 +152,7 @@ class SelectProperty(PageProperty):
         return self.name
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class MultiSelectPropertyItem(PageProperty):
     """Item of a multi-select list property"""
 
@@ -168,7 +168,7 @@ class MultiSelectPropertyItem(PageProperty):
         return self.name
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
     """Property of type ``'multi_select'``"""
 
@@ -177,7 +177,7 @@ class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
     FILTER_FACT_CLS = MultiSelectFilterFactory
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class TitleProperty(PaginatedProperty[TextProperty]):
     """Property of type ``'title'``"""
 

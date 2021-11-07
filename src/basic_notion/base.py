@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from basic_notion.data_gen import DataGenBase
 
 
-@attr.s(frozen=True)
+@attr.s(slots=True)
 class NotionItemBase(abc.ABC):
     OBJECT_TYPE_KEY_STR: ClassVar[str] = ''
     OBJECT_TYPE_STR: ClassVar[str] = ''
