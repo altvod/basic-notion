@@ -33,7 +33,7 @@ class ReadingListItem(NotionPage):
 
 
 class ReadingList(NotionPageList[ReadingListItem]):
-    _ITEM_CLS = ReadingListItem
+    ITEM_CLS = ReadingListItem
 ```
 
 ### Using With `notion-sdk-py`
@@ -132,8 +132,9 @@ ROOT_PAGE_ID=<your-page-id>
 Where:
 - `<your-notion-token>` is your Notion API developer's token
   (you will need to create a Notion integration for this: https://www.notion.so/my-integrations);
-- `<your-database-id>` is a database that use can use for test purposes
-  (with read/write access and a schema corresponding to the model structure from `tests/models.py`);
+- `<your-database-id>` is a database that you can use for test purposes
+  (with read/write access and a schema corresponding to the model structure
+  from `tests/models.py` - Notion's default Reading List will do);
 - `<your-page-id>` is the ID of a page where the tests will create new pages.
 
 ### Testing
