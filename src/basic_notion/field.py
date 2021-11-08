@@ -1,13 +1,17 @@
-from typing import ClassVar, Generic, Optional, Type, TypeVar
+from __future__ import annotations
 
-from basic_notion.page import NotionPage
+from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar
+
 from basic_notion.property import (
     PageProperty, TextProperty, NumberProperty, CheckboxProperty,
     SelectProperty, MultiSelectProperty, TitleProperty,
 )
 
+if TYPE_CHECKING:
+    from basic_notion.page import NotionPage  # noqa
 
-_OWNER_TV = TypeVar('_OWNER_TV', bound=NotionPage)
+
+_OWNER_TV = TypeVar('_OWNER_TV', bound='NotionPage')
 _PROP_VALUE_TV = TypeVar('_PROP_VALUE_TV', bound=PageProperty)
 
 

@@ -9,12 +9,12 @@ if TYPE_CHECKING:
     from basic_notion.base import NotionItemBase  # noqa
     from basic_notion.parent import Parent  # noqa
     from basic_notion.page import NotionPage  # noqa
-    from basic_notion.property import (
-        PageProperty, PaginatedProperty,  # noqa
-        TextProperty, CheckboxProperty, NumberProperty,  # noqa
-        SelectProperty, MultiSelectProperty,  # noqa
-        UrlProperty,  # noqa
+    from basic_notion.property import (  # noqa
+        PageProperty, PaginatedProperty,
+        TextProperty, CheckboxProperty, NumberProperty,
+        SelectProperty, MultiSelectProperty,
     )
+    from basic_notion.schema import Schema
 
 
 _ITEM_CLS_TV = TypeVar('_ITEM_CLS_TV', bound=Type['NotionItemBase'])
@@ -51,7 +51,7 @@ class PageDataGen(DataGenBase[Type['NotionPage']]):
         parent = kwargs.pop('parent')
 
         property_data: dict[str, Union[dict, list]] = {}
-        fields: dict[str, PageProperty] = self._item_cls.get_class_fields()  # type: ignore
+        fields: Schema = self._item_cls.schema  # type: ignore
         for property_attr_name, property_value in kwargs.items():
             if property_attr_name not in fields:
                 raise ValueError(
