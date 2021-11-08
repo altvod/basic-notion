@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import abc
 import inspect
 from typing import ClassVar, Generic, Optional, Type, TypeVar, TYPE_CHECKING
 
 import attr
 
-from basic_notion.base import NotionItemBase
+from basic_notion.base import NotionItemBase, NotionItemBaseMetaclass
 from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.parent import ParentDatabase, ParentPage
 from basic_notion.data_gen import PageDataGen
@@ -25,17 +24,12 @@ def _make_schema_for_page_cls(page_cls: type) -> Schema:
     })
 
 
-class NotionPageMetaclass(abc.ABCMeta):
-    # abc.ABCMeta is needed here for compatibility with NotionItemBase
-
+class NotionPageMetaclass(NotionItemBaseMetaclass):
     """Metaclass for NotionPage that adds `schema` to its attributes"""
 
     def __new__(cls, name: str, bases: tuple[type, ...], dct: dict):
-        if 'schema' in bases:
-            raise TypeError('Attribute "schema" is reserved in NotionPage subclasses')
-
         new_cls = super().__new__(cls, name, bases, dct)
-        new_cls.schema = _make_schema_for_page_cls(new_cls)  # type: ignore
+        new_cls.__notion_schema__ = _make_schema_for_page_cls(new_cls)  # type: ignore
         return new_cls
 
 
@@ -45,7 +39,7 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):
     Represents a page object returned by the Notion API
     """
 
-    schema: Schema  # defined in metaclass
+    __notion_schema__: Schema  # defined in metaclass
 
     OBJECT_TYPE_KEY_STR = 'object'
     OBJECT_TYPE_STR = 'page'
@@ -62,6 +56,11 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):
     # For internal usage
     properties_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('properties',))
     parent_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('parent',))
+
+    @classmethod
+    @property
+    def schema(cls) -> Schema:
+        return cls.__notion_schema__
 
     @property
     def parent(self) -> Parent:

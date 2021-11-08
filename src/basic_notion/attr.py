@@ -1,6 +1,9 @@
-from typing import Any, Generic, Optional, Type, TypeVar
+from __future__ import annotations
 
-from basic_notion.base import NotionItemBase
+from typing import Any, Generic, Optional, TYPE_CHECKING, Type, TypeVar
+
+if TYPE_CHECKING:
+    from basic_notion.base import NotionItemBase
 
 
 _PROP_ATTR_TV = TypeVar('_PROP_ATTR_TV')
@@ -24,13 +27,14 @@ class ItemAttrDescriptor(Generic[_PROP_ATTR_TV]):
             self.__key = (name,)
 
     @property
-    def _key(self) -> tuple[str, ...]:
-        assert self.__key is not None
+    def key(self) -> tuple[str, ...]:
+        if self.__key is None:
+            raise AttributeError('Key is not specified')
         return self.__key
 
     def __get__(self, instance: NotionItemBase, owner: Type[NotionItemBase]) -> _PROP_ATTR_TV:
         data: Any = instance.data
-        for part in self._key:
+        for part in self.key:
             assert isinstance(data, dict)
             data = data[part]
         return data
@@ -40,7 +44,7 @@ class ItemAttrDescriptor(Generic[_PROP_ATTR_TV]):
             raise AttributeError(f'Attribute {self.__name} is not editable')
 
         data: Any = instance.data
-        *parts, last_part = self._key
+        *parts, last_part = self.key
         for part in parts:
             assert isinstance(data, dict)
             data = data[part]
