@@ -12,7 +12,8 @@ from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.data_gen import (
     PaginatedPropertyDataGen, TextPropertyDataGen,
     CheckboxPropertyDataGen, NumberPropertyDataGen,
-    SelectPropertyDataGen,
+    SelectPropertyDataGen, UrlPropertyDataGen,
+    EmailPropertyDataGen, PhoneNumberPropertyDataGen,
 )
 
 
@@ -184,3 +185,45 @@ class TitleProperty(PaginatedProperty[TextProperty]):
     OBJECT_TYPE_STR = 'title'
     ITEM_CLS = TextProperty
     FILTER_FACT_CLS = TextFilterFactory
+
+
+@attr.s(slots=True)
+class UrlProperty(PageProperty):
+    """Property of type ``'checkbox'``"""
+
+    OBJECT_TYPE_STR = 'url'
+    FILTER_FACT_CLS = TextFilterFactory
+    DATA_GEN_CLS = UrlPropertyDataGen
+
+    url: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
+
+    def get_text(self) -> str:
+        return str(self.url)
+
+
+@attr.s(slots=True)
+class EmailProperty(PageProperty):
+    """Property of type ``'checkbox'``"""
+
+    OBJECT_TYPE_STR = 'email'
+    FILTER_FACT_CLS = TextFilterFactory
+    DATA_GEN_CLS = EmailPropertyDataGen
+
+    email: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
+
+    def get_text(self) -> str:
+        return str(self.email)
+
+
+@attr.s(slots=True)
+class PhoneNumberProperty(PageProperty):
+    """Property of type ``'phone_number'``"""
+
+    OBJECT_TYPE_STR = 'phone_number'
+    FILTER_FACT_CLS = TextFilterFactory
+    DATA_GEN_CLS = PhoneNumberPropertyDataGen
+
+    phone_number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor()
+
+    def get_text(self) -> str:
+        return str(self.phone_number)

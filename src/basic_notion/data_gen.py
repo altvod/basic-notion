@@ -13,6 +13,7 @@ if TYPE_CHECKING:
         PageProperty, PaginatedProperty,  # noqa
         TextProperty, CheckboxProperty, NumberProperty,  # noqa
         SelectProperty, MultiSelectProperty,  # noqa
+        UrlProperty,  # noqa
     )
 
 
@@ -141,3 +142,21 @@ class NumberPropertyDataGen(PlainPropertyDataGenBase):
 class SelectPropertyDataGen(PlainPropertyDataGenBase):
     PROPERTY_VALUE_TYPE = str
     PROPERTY_VALUE_KEY = 'name'
+
+
+@attr.s(frozen=True)
+class UrlPropertyDataGen(PlainPropertyDataGenBase):
+    PROPERTY_VALUE_TYPE = str
+    PROPERTY_VALUE_KEY = 'url'
+
+
+@attr.s(frozen=True)
+class EmailPropertyDataGen(PlainPropertyDataGenBase):
+    PROPERTY_VALUE_TYPE = str
+    PROPERTY_VALUE_KEY = 'email'
+
+
+@attr.s(frozen=True)
+class PhoneNumberPropertyDataGen(PlainPropertyDataGenBase):
+    PROPERTY_VALUE_TYPE = str
+    PROPERTY_VALUE_KEY = 'phone_number'
