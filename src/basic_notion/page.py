@@ -59,12 +59,23 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
 
     @property
     def parent(self) -> Parent:
-        parent_type = self.parent_data['type']
-        parent: Parent
+        parent_type: Any
+        if 'type' in self.parent_data:
+            parent_type = self.parent_data['type']
+        else:
+            for value in ('database_id', 'page_id'):
+                if value in self.parent_data:
+                    parent_type = value
+                    break
+            else:
+                raise ValueError(f'Invalid data for parent: {self.parent_data}')
+
+        assert isinstance(parent_type, str)
 
         # TODO: This would be a great place to use match-case,
         #  but mypy doesn't support it yet: https://github.com/python/mypy/pull/10191
 
+        parent: Parent
         if parent_type == ParentPage.OBJECT_TYPE_STR:
             parent = ParentPage(data=self.parent_data)
         elif parent_type == ParentDatabase.OBJECT_TYPE_STR:
