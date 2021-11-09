@@ -1,4 +1,6 @@
-from typing import Any, ClassVar, Generic, Optional, Type, TypeVar, Union
+from __future__ import annotations
+
+from typing import Any, ClassVar, Generic, Iterator, Optional, Type, TypeVar, Union
 
 import attr
 
@@ -9,6 +11,7 @@ from basic_notion.filter import (
 )
 from basic_notion.sort import SortFactory
 from basic_notion.attr import ItemAttrDescriptor
+from basic_notion.utils import set_to_dict
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
@@ -24,8 +27,9 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
 
     OBJECT_TYPE_KEY_STR = 'type'
     FILTER_FACT_CLS: ClassVar[Optional[Type[_FILTER_FACT_TV]]] = None
+    MAKE_FROM_SINGLE_ATTR: ClassVar[Optional[str]] = None
 
-    _property_name: str = attr.ib(kw_only=True, default=None)
+    _property_name: str = attr.ib(kw_only=True, default='')
 
     @property
     def _content_data(self) -> Any:
@@ -59,26 +63,26 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
     def make_from_value(cls: Type[_PROP_TV], property_name: str, value: Any) -> _PROP_TV:
         if isinstance(value, dict):
             return cls.make(property_name=property_name, **value)
-        editable_keys: dict[str, tuple[str, ...]] = cls.editable_keys  # type: ignore
-        assert len(editable_keys) == 1
-        key = next(iter(editable_keys.values()))
+
+        assert cls.MAKE_FROM_SINGLE_ATTR is not None
+        key = cls.attr_keys[cls.MAKE_FROM_SINGLE_ATTR]  # type: ignore
         data: dict[str, Any] = {}
         if cls.OBJECT_TYPE_STR and cls.OBJECT_TYPE_KEY_STR:
             data[cls.OBJECT_TYPE_KEY_STR] = cls.OBJECT_TYPE_STR
 
-        container = data
-        *parts, last_part = key
-        for part in parts:
-            container[part] = {}
-            container = container[part]
-
-        container[last_part] = value
+        set_to_dict(data, key, value)
         return cls(property_name=property_name, data=data)
 
     @classmethod
     def make(cls: Type[_PROP_TV], **kwargs: Any) -> _PROP_TV:
         data = cls._make_inst_dict(kwargs)
         return cls(data=data, property_name=kwargs['property_name'])
+
+    def make_spec(self) -> dict[str, dict]:
+        return {self.OBJECT_TYPE_STR: self.make_internal_spec()}
+
+    def make_internal_spec(self) -> dict[str, Any]:
+        return {}
 
 
 @attr.s(slots=True)
@@ -87,7 +91,49 @@ class PageProperty(PagePropertyBase):
     type: ItemAttrDescriptor[str] = ItemAttrDescriptor()
 
 
+DEFAULT_TEXT_SEP = ','
+
 _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
+
+
+@attr.s
+class PropertyList(Generic[_PAG_PROP_ITEM_TV]):
+    _data: list[dict] = attr.ib(kw_only=True)
+    _item_cls: Type[_PAG_PROP_ITEM_TV] = attr.ib(kw_only=True)
+    _text_sep: str = attr.ib(kw_only=True, default=DEFAULT_TEXT_SEP)
+
+    @property
+    def data(self) -> list[dict]:
+        return self._data
+
+    def __iter__(self) -> Iterator[_PAG_PROP_ITEM_TV]:
+        return iter(self._item_cls(data=item) for item in self._data)
+
+    def __getitem__(self, item: Union[int]) -> _PAG_PROP_ITEM_TV:
+        if not isinstance(item, int):
+            raise TypeError(f'{type(self).__name__} can only be indexed by int')
+        return self._item_cls(data=self._data[item])
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def get_text(self) -> str:
+        return self._text_sep.join([item.get_text() for item in self])
+
+    @classmethod
+    def make_from_value(
+            cls, item_cls: Type[_PAG_PROP_ITEM_TV],
+            property_name: str, value: Any,
+            text_sep: str = DEFAULT_TEXT_SEP,
+    ) -> PropertyList[_PAG_PROP_ITEM_TV]:
+        assert isinstance(value, list)
+        data = [
+            item_cls.make_from_value(
+                property_name=property_name, value=item,
+            ).data  # type: ignore
+            for item in value
+        ]
+        return cls(item_cls=item_cls, text_sep=text_sep, data=data)
 
 
 @attr.s(slots=True)
@@ -96,7 +142,7 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
 
     ITEM_CLS: ClassVar[Type[_PAG_PROP_ITEM_TV]]
 
-    _text_sep: str = attr.ib(kw_only=True, default=',')
+    _text_sep: str = attr.ib(kw_only=True, default=DEFAULT_TEXT_SEP)
 
     @property
     def _content_data_list(self) -> list[dict]:
@@ -105,11 +151,8 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
         return data
 
     @property
-    def items(self) -> list[_PAG_PROP_ITEM_TV]:
-        return [
-            self.ITEM_CLS(data=item_data, property_name=self._property_name)
-            for item_data in self._content_data_list
-        ]
+    def items(self) -> PropertyList[_PAG_PROP_ITEM_TV]:
+        return PropertyList(data=self._content_data_list, item_cls=self.ITEM_CLS, text_sep=self._text_sep)
 
     @property
     def one_item(self) -> _PAG_PROP_ITEM_TV:
@@ -118,17 +161,18 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
         return items[0]
 
     def get_text(self) -> str:
-        return self._text_sep.join([item.get_text() for item in self.items])
+        return self.items.get_text()
 
     @classmethod
     def make_from_value(cls: Type[_PROP_TV], property_name: str, value: Any) -> _PROP_TV:
         assert isinstance(value, list)
         data = {
             cls.OBJECT_TYPE_KEY_STR: cls.OBJECT_TYPE_STR,
-            cls.OBJECT_TYPE_STR: [
-                cls.ITEM_CLS.make_from_value(property_name=property_name, value=item).data  # type: ignore
-                for item in value
-            ]
+            cls.OBJECT_TYPE_STR: PropertyList.make_from_value(
+                item_cls=cls.ITEM_CLS,  # type: ignore
+                value=value,
+                property_name=property_name,
+            ).data
         }
         return cls(property_name=property_name, data=data)
 
@@ -139,8 +183,21 @@ class TextProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'text'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'content'
 
     content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'content'), editable=True)
+    annotations: ItemAttrDescriptor[dict] = ItemAttrDescriptor()
+    href: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor(editable=True)
+    plain_text: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+
+    # The insides of `annotations`:
+    _anno = 'annotations'
+    bold: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'bold'), editable=True)
+    italic: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'italic'), editable=True)
+    strikethrough: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'strikethrough'), editable=True)
+    underline: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'underline'), editable=True)
+    code: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'code'), editable=True)
+    color: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'color'), editable=True)
 
     def get_text(self) -> str:
         return self.content
@@ -152,6 +209,7 @@ class NumberProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'number'
     FILTER_FACT_CLS = NumberFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'number'
 
     number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 
@@ -165,6 +223,7 @@ class CheckboxProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'checkbox'
     FILTER_FACT_CLS = CheckboxFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'checkbox'
 
     checkbox: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
 
@@ -175,6 +234,7 @@ class SelectProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'select'
     FILTER_FACT_CLS = SelectFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'name'
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'name'), editable=True)
@@ -190,6 +250,7 @@ class MultiSelectPropertyItem(PageProperty):
 
     OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
     OBJECT_TYPE_STR = ''
+    MAKE_FROM_SINGLE_ATTR = 'name'
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(editable=True)
@@ -223,6 +284,7 @@ class UrlProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'url'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'url'
 
     url: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 
@@ -236,6 +298,7 @@ class EmailProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'email'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'email'
 
     email: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 
@@ -249,6 +312,7 @@ class PhoneNumberProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'phone_number'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'phone_number'
 
     phone_number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 

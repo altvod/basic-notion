@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Optional, TYPE_CHECKING, Type, TypeVar
+from typing import Generic, Optional, TYPE_CHECKING, Type, TypeVar
+
+from basic_notion.utils import get_from_dict, set_to_dict
 
 if TYPE_CHECKING:
     from basic_notion.base import NotionItemBase
@@ -37,20 +39,10 @@ class ItemAttrDescriptor(Generic[_PROP_ATTR_TV]):
         return self.__editable
 
     def __get__(self, instance: NotionItemBase, owner: Type[NotionItemBase]) -> _PROP_ATTR_TV:
-        data: Any = instance.data
-        for part in self.key:
-            assert isinstance(data, dict)
-            data = data[part]
-        return data
+        return get_from_dict(instance.data, self.key)
 
     def __set__(self, instance: NotionItemBase, value: _PROP_ATTR_TV) -> None:
         if not self.__editable:
             raise AttributeError(f'Attribute {self.__name} is not editable')
 
-        data: Any = instance.data
-        *parts, last_part = self.key
-        for part in parts:
-            assert isinstance(data, dict)
-            data = data[part]
-        assert isinstance(data, dict)
-        data[last_part] = value
+        set_to_dict(instance.data, self.key, value)
