@@ -9,7 +9,7 @@ from basic_notion.property import PageProperty
 
 @attr.s(frozen=True)
 class Schema:
-    _properties: Mapping[str, PageProperty] = attr.ib()
+    _properties: Mapping[str, PageProperty] = attr.ib(factory=dict)
 
     @property
     def properties(self) -> Mapping[str, PageProperty]:
@@ -23,3 +23,9 @@ class Schema:
 
     def items(self) -> Iterable[tuple[str, PageProperty]]:
         yield from self._properties.items()
+
+    def make_spec(self) -> dict[str, dict]:
+        return {
+            prop.property_name: prop.make_spec()
+            for prop in self._properties.values()
+        }

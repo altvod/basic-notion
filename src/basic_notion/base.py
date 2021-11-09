@@ -7,6 +7,7 @@ from typing import Any, ClassVar, Optional, Type, TypeVar
 import attr
 
 from basic_notion import exc
+from basic_notion.utils import set_to_dict
 
 
 def _get_attr_keys_for_cls(members: dict[str, Any], only_editable: bool = False) -> dict[str, tuple[str, ...]]:
@@ -88,13 +89,8 @@ class NotionItemBase(metaclass=NotionItemBaseMetaclass):
         for name, key in cls.editable_keys.items():  # type: ignore
             if name not in kwargs:
                 continue
-            container: dict = data
-            *parts, last_part = key
-            for part in parts:
-                container[part] = {}
-                container = container[part]
 
-            container[last_part] = kwargs[name]
+            set_to_dict(data, key, kwargs[name])
 
         return data
 

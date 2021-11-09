@@ -19,7 +19,8 @@ pip install basic-notion
 
 ## Basic Examples
 
-### Describing Models
+### Defining Models
+
 ```python
 from basic_notion.page import NotionPage, NotionPageList
 from basic_notion.field import SelectField, TitleField, MultiSelectField
@@ -36,9 +37,13 @@ class ReadingList(NotionPageList[ReadingListItem]):
     ITEM_CLS = ReadingListItem
 ```
 
-### Using With `notion-sdk-py`
+All the other examples are using the `notion-client` package
+for sending and fetching data.
+See the package's [homepage on GitHub](https://github.com/ramnes/notion-sdk-py)
 
-Fetching a list of pages from a database
+### Fetching a page list from a database
+
+(assuming you put the contents of previous example in `models.py`)
 
 ```python
 import asyncio
@@ -82,9 +87,8 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
-(assuming you put the previous code in `models.py`)
 
-Creating a new page
+### Creating a new page
 
 ```python
 from notion_client import Client
@@ -106,10 +110,26 @@ def create_page(client: Client, database_id: str) -> ReadingListItem:
     return item
 ```
 
-See `notion-sdk-py`'s homepage for more info on the client: https://github.com/ramnes/notion-sdk-py
+### Creating a new database
+
+```python
+from notion_client import Client
+from basic_notion.database import NotionDatabase
+from models import ReadingListItem
+
+def create_database(client: Client, parent_page_id: str) -> NotionDatabase:
+    database = NotionDatabase.make(
+        title=['My New Shiny Database'],
+        parent={'page_id': parent_page_id},
+        properties=ReadingListItem.schema,
+    )
+    response = client.pages.create(**database.data)
+    created_database = NotionDatabase(data=response)
+    return created_database
+```
 
 You can also see the files in `tests/` for more examples
-and more thorough usage of attributes and properties
+and more thorough usage of the various attributes and properties
 
 ## Development and Testing
 
@@ -125,17 +145,16 @@ Create file `.env` with the following content:
 
 ```
 NOTION_API_TOKEN=<your-notion-token>
-DATABASE_ID=<your-database-id>
 ROOT_PAGE_ID=<your-page-id>
 ```
 
 Where:
-- `<your-notion-token>` is your Notion API developer's token
-  (you will need to create a Notion integration for this: https://www.notion.so/my-integrations);
-- `<your-database-id>` is a database that you can use for test purposes
-  (with read/write access and a schema corresponding to the model structure
-  from `tests/models.py` - Notion's default Reading List will do);
-- `<your-page-id>` is the ID of a page where the tests will create new pages.
+- `<your-notion-token>` is your Notion API developer's token.
+  You will need to create a Notion integration for this:
+  visit https://www.notion.so/my-integrations.
+- `<your-page-id>` is the ID of a page where the tests will
+  create new child pages and databases.
+  It must have read/write permissions for your access token.
 
 ### Testing
 
