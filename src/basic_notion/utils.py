@@ -13,8 +13,9 @@ def set_to_dict(dct: dict, key: tuple[str, ...], value: Any) -> None:
     data = dct
     *parts, last_part = key
     for part in parts:
-        new_data: dict[str, Any] = {}
-        data[part] = new_data
+        if part not in data:
+            data[part] = {}
+        new_data = data[part]
         data = new_data
 
     data[last_part] = value

@@ -11,7 +11,7 @@ from basic_notion.filter import (
 )
 from basic_notion.sort import SortFactory
 from basic_notion.attr import ItemAttrDescriptor
-from basic_notion.utils import get_from_dict, set_to_dict
+from basic_notion.utils import set_to_dict
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
@@ -27,6 +27,7 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
 
     OBJECT_TYPE_KEY_STR = 'type'
     FILTER_FACT_CLS: ClassVar[Optional[Type[_FILTER_FACT_TV]]] = None
+    MAKE_FROM_SINGLE_ATTR: ClassVar[Optional[str]] = None
 
     _property_name: str = attr.ib(kw_only=True, default='')
 
@@ -62,9 +63,9 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
     def make_from_value(cls: Type[_PROP_TV], property_name: str, value: Any) -> _PROP_TV:
         if isinstance(value, dict):
             return cls.make(property_name=property_name, **value)
-        editable_keys: dict[str, tuple[str, ...]] = cls.editable_keys  # type: ignore
-        assert len(editable_keys) == 1
-        key = next(iter(editable_keys.values()))
+
+        assert cls.MAKE_FROM_SINGLE_ATTR is not None
+        key = cls.attr_keys[cls.MAKE_FROM_SINGLE_ATTR]  # type: ignore
         data: dict[str, Any] = {}
         if cls.OBJECT_TYPE_STR and cls.OBJECT_TYPE_KEY_STR:
             data[cls.OBJECT_TYPE_KEY_STR] = cls.OBJECT_TYPE_STR
@@ -182,8 +183,21 @@ class TextProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'text'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'content'
 
     content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'content'), editable=True)
+    annotations: ItemAttrDescriptor[dict] = ItemAttrDescriptor()
+    href: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor(editable=True)
+    plain_text: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+
+    # The insides of `annotations`:
+    _anno = 'annotations'
+    bold: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'bold'), editable=True)
+    italic: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'italic'), editable=True)
+    strikethrough: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'strikethrough'), editable=True)
+    underline: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'underline'), editable=True)
+    code: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'code'), editable=True)
+    color: ItemAttrDescriptor[dict] = ItemAttrDescriptor(key=(_anno, 'color'), editable=True)
 
     def get_text(self) -> str:
         return self.content
@@ -195,6 +209,7 @@ class NumberProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'number'
     FILTER_FACT_CLS = NumberFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'number'
 
     number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 
@@ -208,6 +223,7 @@ class CheckboxProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'checkbox'
     FILTER_FACT_CLS = CheckboxFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'checkbox'
 
     checkbox: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
 
@@ -218,6 +234,7 @@ class SelectProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'select'
     FILTER_FACT_CLS = SelectFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'name'
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'name'), editable=True)
@@ -233,6 +250,7 @@ class MultiSelectPropertyItem(PageProperty):
 
     OBJECT_TYPE_KEY_STR = ''  # no attribute containing the object type
     OBJECT_TYPE_STR = ''
+    MAKE_FROM_SINGLE_ATTR = 'name'
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',))
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(editable=True)
@@ -266,6 +284,7 @@ class UrlProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'url'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'url'
 
     url: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 
@@ -279,6 +298,7 @@ class EmailProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'email'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'email'
 
     email: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 
@@ -292,6 +312,7 @@ class PhoneNumberProperty(PageProperty):
 
     OBJECT_TYPE_STR = 'phone_number'
     FILTER_FACT_CLS = TextFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'phone_number'
 
     phone_number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
 

@@ -44,7 +44,14 @@ def test_page_make():
         'parent': {'database_id': 'qwerty'},
         'properties': {
             'Type': {'type': 'select', 'select': {'name': 'Book'}},
-            'Name': {'type': 'title', 'title': [{'type': 'text', 'text': {'content': 'The Best Book Ever'}}]},
+            'Name': {'type': 'title', 'title': [
+                {
+                    'type': 'text',
+                    'text': {
+                        'content': 'The Best Book Ever',
+                    }
+                }
+            ]},
             'Author': {'type': 'multi_select', 'multi_select': [{'name': 'John Doe'}]},
         }
     }
