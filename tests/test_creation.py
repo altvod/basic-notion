@@ -1,5 +1,6 @@
 from notion_client import Client
 
+from basic_notion.parent import ParentDatabase
 from basic_notion.query import Query
 
 from tests.models import ReadingListItem, ReadingList
@@ -16,12 +17,12 @@ def get_id_list(sync_client: Client, database_query: Query) -> list[str]:
 
 
 def test_create_and_archive_page(sync_client, settings):
-    page_data = ReadingListItem.generate(
-        parent={'database_id': settings.database_id},
+    page_data = ReadingListItem.make(
+        parent=ParentDatabase.make(database_id=settings.database_id),
         type='Book',
         name=['The Best Book Ever'],
         authors=['John Doe'],
-    )
+    ).data
     response = sync_client.pages.create(**page_data)
     item = ReadingListItem(data=response)
     assert len(item.id) == 36

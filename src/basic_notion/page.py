@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 import inspect
-from typing import ClassVar, Generic, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, ClassVar, Generic, Optional, Type, TypeVar
 
 import attr
 
 from basic_notion.base import NotionItemBase, NotionItemBaseMetaclass
 from basic_notion.attr import ItemAttrDescriptor
-from basic_notion.parent import ParentDatabase, ParentPage
-from basic_notion.data_gen import PageDataGen
+from basic_notion.parent import Parent, ParentDatabase, ParentPage
 from basic_notion.property import PageProperty
 from basic_notion.schema import Schema
-
-if TYPE_CHECKING:
-    from basic_notion.parent import Parent
 
 
 def _make_schema_for_page_cls(page_cls: type) -> Schema:
@@ -34,16 +30,15 @@ class NotionPageMetaclass(NotionItemBaseMetaclass):
 
 
 @attr.s(slots=True)
-class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):
+class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
     """
     Represents a page object returned by the Notion API
     """
 
-    __notion_schema__: Schema  # defined in metaclass
+    __notion_schema__: Schema  # type: ignore  # defined in metaclass
 
     OBJECT_TYPE_KEY_STR = 'object'
     OBJECT_TYPE_STR = 'page'
-    DATA_GEN_CLS = PageDataGen
 
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
@@ -81,6 +76,32 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):
 
     # TODO: properties that convert `created_time` and `last_edited_time` into datetimes.
     #  Something wrong with isoformat
+
+    @classmethod
+    def _make_inst_prop_dict(cls, kwargs: dict[str, Any]) -> dict:
+        data = {}
+        for name, prop in cls.schema.items():  # type: ignore
+            if name not in kwargs:
+                continue
+            data[prop.property_name] = prop.make_from_value(
+                property_name=prop.property_name, value=kwargs[name],
+            ).data
+        return data
+
+    @classmethod
+    def _make_inst_dict(cls, kwargs: dict[str, Any]) -> dict:
+        data = super()._make_inst_dict(kwargs)
+        parent = kwargs['parent']
+        parent_data: dict
+        if isinstance(parent, Parent):
+            parent_data = parent.data
+        elif isinstance(parent, dict):
+            parent_data = parent
+        else:
+            raise TypeError(type(parent))
+        data['parent'] = parent_data
+        data['properties'] = cls._make_inst_prop_dict(kwargs)
+        return data
 
 
 _RESULT_ITEM_TV = TypeVar('_RESULT_ITEM_TV', bound=NotionPage)

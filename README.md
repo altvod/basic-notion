@@ -91,13 +91,13 @@ from notion_client import Client
 from models import ReadingListItem
 
 def create_page(client: Client, database_id: str) -> ReadingListItem:
-    page_data = ReadingListItem.generate(
+    page = ReadingListItem.make(
         parent={'database_id': database_id},
         type='Book',
         name=['The Best Book Ever'],
         authors=['John Doe'],
     )
-    response = client.pages.create(**page_data)
+    response = client.pages.create(**page.data)
     item = ReadingListItem(data=response)
     # assert len(item.id) == 36
     # assert item.type.name == 'Book'

@@ -32,6 +32,10 @@ class ItemAttrDescriptor(Generic[_PROP_ATTR_TV]):
             raise AttributeError('Key is not specified')
         return self.__key
 
+    @property
+    def editable(self) -> bool:
+        return self.__editable
+
     def __get__(self, instance: NotionItemBase, owner: Type[NotionItemBase]) -> _PROP_ATTR_TV:
         data: Any = instance.data
         for part in self.key:
