@@ -6,7 +6,7 @@ import attr
 
 from basic_notion.base import NotionItemBase
 from basic_notion.attr import ItemAttrDescriptor
-from basic_notion.parent import ParentPage
+from basic_notion.parent import ParentPage, ParentDatabase
 from basic_notion.property import PropertyList, TextProperty
 from basic_notion.schema import Schema
 
@@ -66,3 +66,6 @@ class NotionDatabase(NotionItemBase):
             'parent': parent.data,
             'properties': properties_data,
         }
+
+    def as_parent(self) -> ParentDatabase:
+        return ParentDatabase.make(database_id=self.id)

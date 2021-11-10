@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar
 
 from basic_notion.property import (
-    PageProperty, TextProperty, NumberProperty, CheckboxProperty,
+    PageProperty, NumberProperty, CheckboxProperty,
     SelectProperty, MultiSelectProperty, TitleProperty,
+    EmailProperty, UrlProperty, PhoneNumberProperty
 )
 from basic_notion.utils import get_from_dict
 
@@ -67,12 +68,6 @@ class NotionField(Generic[_PROP_VALUE_TV]):
         return self.PROP_CLS(data=value_data, property_name=self._property_name)
 
 
-class TextField(NotionField[TextProperty]):
-    __slots__ = ()
-
-    PROP_CLS = TextProperty
-
-
 class NumberField(NotionField[NumberProperty]):
     __slots__ = ()
 
@@ -101,3 +96,21 @@ class TitleField(NotionField[TitleProperty]):
     __slots__ = ()
 
     PROP_CLS = TitleProperty
+
+
+class EmailField(NotionField[EmailProperty]):
+    __slots__ = ()
+
+    PROP_CLS = EmailProperty
+
+
+class UrlField(NotionField[UrlProperty]):
+    __slots__ = ()
+
+    PROP_CLS = UrlProperty
+
+
+class PhoneNumberField(NotionField[PhoneNumberProperty]):
+    __slots__ = ()
+
+    PROP_CLS = PhoneNumberProperty

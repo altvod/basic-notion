@@ -91,7 +91,7 @@ class PageProperty(PagePropertyBase):
     type: ItemAttrDescriptor[str] = ItemAttrDescriptor()
 
 
-DEFAULT_TEXT_SEP = ','
+DEFAULT_TEXT_SEP = ', '
 
 _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
 
@@ -154,6 +154,10 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     def items(self) -> PropertyList[_PAG_PROP_ITEM_TV]:
         return PropertyList(data=self._content_data_list, item_cls=self.ITEM_CLS, text_sep=self._text_sep)
 
+    @items.setter
+    def items(self, value: PropertyList) -> None:
+        self.data[self.OBJECT_TYPE_STR] = value.data
+
     @property
     def one_item(self) -> _PAG_PROP_ITEM_TV:
         items = self.items
@@ -188,7 +192,7 @@ class TextProperty(PageProperty):
     content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'content'), editable=True)
     annotations: ItemAttrDescriptor[dict] = ItemAttrDescriptor()
     href: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor(editable=True)
-    plain_text: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    plain_text: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
 
     # The insides of `annotations`:
     _anno = 'annotations'
@@ -236,9 +240,9 @@ class SelectProperty(PageProperty):
     FILTER_FACT_CLS = SelectFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'name'
 
-    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'))
+    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'), derived=True)
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'name'), editable=True)
-    color: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'color'))
+    color: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'color'), derived=True)
 
     def get_text(self) -> str:
         return self.name
@@ -252,9 +256,9 @@ class MultiSelectPropertyItem(PageProperty):
     OBJECT_TYPE_STR = ''
     MAKE_FROM_SINGLE_ATTR = 'name'
 
-    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',))
+    option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=('id',), derived=True)
     name: ItemAttrDescriptor[str] = ItemAttrDescriptor(editable=True)
-    color: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    color: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
 
     def get_text(self) -> str:
         return self.name
@@ -267,6 +271,13 @@ class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
     OBJECT_TYPE_STR = 'multi_select'
     ITEM_CLS = MultiSelectPropertyItem
     FILTER_FACT_CLS = MultiSelectFilterFactory
+
+    def set_names(self, value: list[str]) -> None:
+        self.items = PropertyList.make_from_value(
+            item_cls=self.ITEM_CLS,
+            value=value,
+            property_name=self.property_name,
+        )
 
 
 @attr.s(slots=True)

@@ -21,16 +21,19 @@ pip install basic-notion
 
 ### Defining Models
 
+All of the examples assume that you put the following code
+in a file and name it `models.py`:
+
 ```python
 from basic_notion.page import NotionPage, NotionPageList
 from basic_notion.field import SelectField, TitleField, MultiSelectField
 
 
 class ReadingListItem(NotionPage):
-    type: SelectField = SelectField(property_name='Type')
-    name: TitleField = TitleField(property_name='Name')
-    status: SelectField = SelectField(property_name='Status')
-    authors: MultiSelectField = MultiSelectField(property_name='Author')
+    type = SelectField(property_name='Type')
+    name = TitleField(property_name='Name')
+    status = SelectField(property_name='Status')
+    authors = MultiSelectField(property_name='Author')
 
 
 class ReadingList(NotionPageList[ReadingListItem]):
@@ -107,6 +110,7 @@ def create_page(client: Client, database_id: str) -> ReadingListItem:
     # assert item.type.name == 'Book'
     # assert item.name.get_text() == 'The Best Book Ever'
     # assert item.authors.get_text() == 'John Doe'
+    # assert not item.name[0].bold
     return item
 ```
 

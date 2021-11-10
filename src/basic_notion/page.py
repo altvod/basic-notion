@@ -35,7 +35,7 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
     Represents a page object returned by the Notion API
     """
 
-    __notion_schema__: Schema  # type: ignore  # defined in metaclass
+    __notion_schema__: Schema = None  # type: ignore  # defined in metaclass
 
     OBJECT_TYPE_KEY_STR = 'object'
     OBJECT_TYPE_STR = 'page'
@@ -43,8 +43,8 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
     url: ItemAttrDescriptor[str] = ItemAttrDescriptor()
-    created_time: ItemAttrDescriptor[str] = ItemAttrDescriptor()
-    last_edited_time: ItemAttrDescriptor[str] = ItemAttrDescriptor()
+    created_time: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
+    last_edited_time: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
     cover: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
     icon: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
 
