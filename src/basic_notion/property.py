@@ -298,6 +298,15 @@ class TitleProperty(PaginatedProperty[TextProperty]):
 
 
 @attr.s(slots=True)
+class RichTextProperty(PaginatedProperty[TextProperty]):
+    """Property of type ``'rich_text'``"""
+
+    OBJECT_TYPE_STR = 'rich_text'
+    ITEM_CLS = TextProperty
+    FILTER_FACT_CLS = TextFilterFactory
+
+
+@attr.s(slots=True)
 class UrlProperty(PageProperty):
     """Property of type ``'checkbox'``"""
 

@@ -4,7 +4,8 @@ from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar
 
 from basic_notion.property import (
     PageProperty, NumberProperty, CheckboxProperty,
-    SelectProperty, MultiSelectProperty, TitleProperty,
+    SelectProperty, MultiSelectProperty,
+    TitleProperty, RichTextProperty,
     EmailProperty, UrlProperty, PhoneNumberProperty,
     DateProperty,
 )
@@ -97,6 +98,12 @@ class TitleField(NotionField[TitleProperty]):
     __slots__ = ()
 
     PROP_CLS = TitleProperty
+
+
+class RichTextField(NotionField[RichTextProperty]):
+    __slots__ = ()
+
+    PROP_CLS = RichTextProperty
 
 
 class EmailField(NotionField[EmailProperty]):

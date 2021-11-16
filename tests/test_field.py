@@ -8,12 +8,14 @@ from notion_client import Client
 from basic_notion.page import NotionPage
 from basic_notion.database import NotionDatabase
 from basic_notion.property import (
-    PageProperty, TitleProperty, NumberProperty, CheckboxProperty,
+    PageProperty, TitleProperty, RichTextProperty,
+    NumberProperty, CheckboxProperty,
     EmailProperty, UrlProperty, PhoneNumberProperty,
     SelectProperty, MultiSelectProperty, DateProperty,
 )
 from basic_notion.field import (
-    NotionField, TitleField, NumberField, CheckboxField,
+    NotionField, TitleField, RichTextField,
+    NumberField, CheckboxField,
     EmailField, UrlField, PhoneNumberField,
     SelectField, MultiSelectField, DateField,
 )
@@ -147,6 +149,30 @@ class TestTitleField(BaseTestField):
         prop.items[0].strikethrough = True
 
     def check_updated_property(self, prop: TitleProperty) -> None:
+        assert prop.items[0].content == 'My Text'
+        assert prop.items[0].plain_text == 'My Text'
+        assert prop.items[0].bold
+        assert prop.items[0].strikethrough
+
+
+class TestRichTextField(BaseTestField):
+    FIELD_CLS = RichTextField
+
+    def make_value(self) -> Any:
+        return ['My Text']
+
+    def check_property(self, prop: RichTextProperty) -> None:
+        assert prop.items[0].content == 'My Text'
+        assert prop.items[0].plain_text == 'My Text'
+        assert not prop.items[0].bold
+        assert not prop.items[0].strikethrough
+        assert prop.get_text() == 'My Text'
+
+    def update_property(self, prop: RichTextProperty) -> Any:
+        prop.items[0].bold = True
+        prop.items[0].strikethrough = True
+
+    def check_updated_property(self, prop: RichTextProperty) -> None:
         assert prop.items[0].content == 'My Text'
         assert prop.items[0].plain_text == 'My Text'
         assert prop.items[0].bold
