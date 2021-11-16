@@ -1,4 +1,5 @@
 import abc
+import datetime
 from typing import Any, ClassVar, Type, TypeVar
 
 import pytest
@@ -9,12 +10,12 @@ from basic_notion.database import NotionDatabase
 from basic_notion.property import (
     PageProperty, TitleProperty, NumberProperty, CheckboxProperty,
     EmailProperty, UrlProperty, PhoneNumberProperty,
-    SelectProperty, MultiSelectProperty
+    SelectProperty, MultiSelectProperty, DateProperty,
 )
 from basic_notion.field import (
     NotionField, TitleField, NumberField, CheckboxField,
     EmailField, UrlField, PhoneNumberField,
-    SelectField, MultiSelectField
+    SelectField, MultiSelectField, DateField,
 )
 
 from tests.tools import get_database_from_model
@@ -238,7 +239,26 @@ class TestMultiSelectField(BaseTestField):
         assert prop.get_text() == 'June, October'
 
     def update_property(self, prop: MultiSelectProperty) -> Any:
-        return prop.set_names(['December', 'May', 'November'])
+        prop.set_names(['December', 'May', 'November'])
 
     def check_updated_property(self, prop: MultiSelectProperty) -> None:
         assert [item.name for item in prop.items] == ['December', 'May', 'November']
+
+
+class TestDateField(BaseTestField):
+    FIELD_CLS = DateField
+
+    def make_value(self) -> datetime.datetime:
+        # WARNING: Notion ignores seconds
+        return datetime.datetime(2020, 10, 9, 8, 7, 0, tzinfo=datetime.timezone.utc)
+
+    def check_property(self, prop: DateProperty) -> None:
+        assert prop.start == datetime.datetime(2020, 10, 9, 8, 7, 0, tzinfo=datetime.timezone.utc)
+        assert prop.get_text() == '2020-10-09T08:07:00.000+00:00 - ...'
+
+    def update_property(self, prop: DateProperty) -> Any:
+        prop.end = datetime.datetime(2020, 11, 10, 9, 8, 0, tzinfo=datetime.timezone.utc)
+
+    def check_updated_property(self, prop: DateProperty) -> None:
+        assert prop.end == datetime.datetime(2020, 11, 10, 9, 8, 0, tzinfo=datetime.timezone.utc)
+        assert prop.get_text() == '2020-10-09T08:07:00.000+00:00 - 2020-11-10T09:08:00.000+00:00'

@@ -5,7 +5,8 @@ from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar
 from basic_notion.property import (
     PageProperty, NumberProperty, CheckboxProperty,
     SelectProperty, MultiSelectProperty, TitleProperty,
-    EmailProperty, UrlProperty, PhoneNumberProperty
+    EmailProperty, UrlProperty, PhoneNumberProperty,
+    DateProperty,
 )
 from basic_notion.utils import get_from_dict
 
@@ -114,3 +115,9 @@ class PhoneNumberField(NotionField[PhoneNumberProperty]):
     __slots__ = ()
 
     PROP_CLS = PhoneNumberProperty
+
+
+class DateField(NotionField[DateProperty]):
+    __slots__ = ()
+
+    PROP_CLS = DateProperty

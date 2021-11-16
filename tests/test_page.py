@@ -1,3 +1,5 @@
+import datetime
+
 from basic_notion.parent import ParentDatabase
 
 from tests.models import ReadingList, ReadingListItem
@@ -19,8 +21,8 @@ def test_page_attrs(reading_list_item):
 
     # Attributes
     assert len(page.id) == 36
-    assert page.created_time > '1900'
-    assert page.last_edited_time > '1900'
+    assert page.created_time.replace(tzinfo=None) > datetime.datetime(2000, 1, 1)
+    assert page.last_edited_time.replace(tzinfo=None) > datetime.datetime(2000, 1, 1)
     assert 'http' in page.url
 
     # Type (select)

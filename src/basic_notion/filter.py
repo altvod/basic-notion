@@ -111,3 +111,10 @@ class MultiSelectFilterFactory(FilterFactory):
 class FilesFilterFactory(FilterFactory):
     is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
     is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+
+
+@attr.s(frozen=True)
+class DateFilterFactory(FilterFactory):
+    is_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    is_not_empty: FilterGenDescriptor[bool] = FilterGenDescriptor()
+    # TODO: Support all filters

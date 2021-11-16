@@ -10,6 +10,10 @@ from basic_notion.sort import Sort
 
 class QuerySerializer:
     @classmethod
+    def serialize_filter_value(cls, filter_value: Any) -> Any:
+        return filter_value
+
+    @classmethod
     def serialize(cls, query: Query) -> dict:
         data: dict[str, Any] = {
             'database_id': query.database_id,
@@ -18,7 +22,9 @@ class QuerySerializer:
             data['filter'] = {
                 "property": query.filter_obj.property_name,
                 query.filter_obj.property_type_name: {
-                    query.filter_obj.filter_name: query.filter_obj.filter_value,
+                    query.filter_obj.filter_name: cls.serialize_filter_value(
+                        query.filter_obj.filter_value
+                    ),
                 },
             }
         if query.sorts_obj is not None:

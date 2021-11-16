@@ -109,7 +109,16 @@ class NotionItemBase(metaclass=NotionItemBaseMetaclass):
             if name not in kwargs:
                 continue
 
-            set_to_dict(data, key, kwargs[name])
+            value = kwargs[name]
+
+            # Get attr descriptor and its `set_converter` callable
+            # (if it exists) to convert the value into its serializable form
+            prop = getattr(cls, name)
+            set_converter = prop.set_converter
+            if set_converter is not None:
+                value = set_converter(value)
+
+            set_to_dict(data, key, value)
 
         return data
 

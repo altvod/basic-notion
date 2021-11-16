@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import Any, ClassVar, Generic, Iterator, Optional, Type, TypeVar, Union
 
 import attr
@@ -7,11 +8,11 @@ import attr
 from basic_notion.base import NotionItemBase
 from basic_notion.filter import (
     FilterFactory, TextFilterFactory, NumberFilterFactory, CheckboxFilterFactory,
-    SelectFilterFactory, MultiSelectFilterFactory,
+    SelectFilterFactory, MultiSelectFilterFactory, DateFilterFactory
 )
 from basic_notion.sort import SortFactory
 from basic_notion.attr import ItemAttrDescriptor
-from basic_notion.utils import set_to_dict
+from basic_notion.utils import set_to_dict, serialize_date, deserialize_date
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
@@ -69,6 +70,13 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
         data: dict[str, Any] = {}
         if cls.OBJECT_TYPE_STR and cls.OBJECT_TYPE_KEY_STR:
             data[cls.OBJECT_TYPE_KEY_STR] = cls.OBJECT_TYPE_STR
+
+        # Get attr descriptor and its `set_converter` callable
+        # (if it exists) to convert the value into its serializable form
+        prop = getattr(cls, cls.MAKE_FROM_SINGLE_ATTR)
+        set_converter = prop.set_converter
+        if set_converter is not None:
+            value = set_converter(value)
 
         set_to_dict(data, key, value)
         return cls(property_name=property_name, data=data)
@@ -329,3 +337,26 @@ class PhoneNumberProperty(PageProperty):
 
     def get_text(self) -> str:
         return str(self.phone_number)
+
+
+@attr.s(slots=True)
+class DateProperty(PageProperty):
+    """Property of type ``'date'``"""
+
+    OBJECT_TYPE_STR = 'date'
+    FILTER_FACT_CLS = DateFilterFactory
+    MAKE_FROM_SINGLE_ATTR = 'start'
+
+    start: ItemAttrDescriptor[Optional[datetime.datetime]] = ItemAttrDescriptor(
+        key=(OBJECT_TYPE_STR, 'start'), editable=True,
+        get_converter=deserialize_date, set_converter=serialize_date)
+    start_str: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor(
+        key=(OBJECT_TYPE_STR, 'start'), editable=True)
+    end: ItemAttrDescriptor[Optional[datetime.datetime]] = ItemAttrDescriptor(
+        key=(OBJECT_TYPE_STR, 'end'), editable=True,
+        get_converter=deserialize_date, set_converter=serialize_date)
+    end_str: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor(
+        key=(OBJECT_TYPE_STR, 'end'), editable=True)
+
+    def get_text(self) -> str:
+        return f'{self.start_str} - {self.end_str}'.replace('None', '...')

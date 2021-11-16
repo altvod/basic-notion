@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import inspect
 from typing import Any, ClassVar, Generic, Optional, Type, TypeVar
 
@@ -10,6 +11,7 @@ from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.parent import Parent, ParentDatabase, ParentPage
 from basic_notion.property import PageProperty
 from basic_notion.schema import Schema
+from basic_notion.utils import deserialize_date
 
 
 def _make_schema_for_page_cls(page_cls: type) -> Schema:
@@ -43,8 +45,12 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     archived: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
     url: ItemAttrDescriptor[str] = ItemAttrDescriptor()
-    created_time: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
-    last_edited_time: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
+    created_time: ItemAttrDescriptor[Optional[datetime.datetime]] = ItemAttrDescriptor(
+        derived=True, get_converter=deserialize_date)
+    created_time_str: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
+    last_edited_time: ItemAttrDescriptor[Optional[datetime.datetime]] = ItemAttrDescriptor(
+        derived=True, get_converter=deserialize_date)
+    last_edited_time_str: ItemAttrDescriptor[str] = ItemAttrDescriptor(derived=True)
     cover: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
     icon: ItemAttrDescriptor[Optional[str]] = ItemAttrDescriptor()
 
@@ -84,9 +90,6 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
             raise ValueError(f'Unknown parent type: {parent_type}')
 
         return parent
-
-    # TODO: properties that convert `created_time` and `last_edited_time` into datetimes.
-    #  Something wrong with isoformat
 
     @classmethod
     def _make_inst_prop_dict(cls, kwargs: dict[str, Any]) -> dict:
