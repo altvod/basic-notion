@@ -6,28 +6,21 @@ from typing import Any, ClassVar, Generic, Iterator, Optional, Type, TypeVar, Un
 import attr
 
 from basic_notion.base import NotionItemBase
-from basic_notion.filter import (
-    FilterFactory, TextFilterFactory, NumberFilterFactory, CheckboxFilterFactory,
-    SelectFilterFactory, MultiSelectFilterFactory, DateFilterFactory
-)
-from basic_notion.sort import SortFactory
 from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.utils import set_to_dict, serialize_date, deserialize_date
 
 
-_FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
 _CONTENT_TV = TypeVar('_CONTENT_TV')
 _PROP_TV = TypeVar('_PROP_TV', bound='PagePropertyBase')
 
 
 @attr.s(slots=True)
-class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
+class PagePropertyBase(NotionItemBase):
     """
     Base class for properties of Notion objects.
     """
 
     OBJECT_TYPE_KEY_STR = 'type'
-    FILTER_FACT_CLS: ClassVar[Optional[Type[_FILTER_FACT_TV]]] = None
     MAKE_FROM_SINGLE_ATTR: ClassVar[Optional[str]] = None
 
     _property_name: str = attr.ib(kw_only=True, default='')
@@ -41,27 +34,15 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
         """Name of the property within the Notion Page object"""
         return self._property_name
 
-    @property
-    def filter(self) -> _FILTER_FACT_TV:
-        """Create a ``FilterFactory`` tailored for this property"""
-        if self.FILTER_FACT_CLS is None:
-            raise TypeError(f'Filters are not defined for {self.OBJECT_TYPE_STR!r} properties')
-        return self.FILTER_FACT_CLS(
-            property_name=self._property_name,
-            property_type_name=self.OBJECT_TYPE_STR,
-        )
-
-    @property
-    def sort(self) -> SortFactory:
-        """Create a ``SortFactory`` tailored for this property"""
-        return SortFactory(property_name=self._property_name)
-
     def get_text(self) -> str:
         """Return a text representation of the property's content"""
         return ''
 
     @classmethod
     def make_from_value(cls: Type[_PROP_TV], property_name: str, value: Any) -> _PROP_TV:
+        if isinstance(value, cls):
+            return cls(property_name=property_name, data=value.data)
+
         if isinstance(value, dict):
             return cls.make(property_name=property_name, **value)
 
@@ -85,12 +66,6 @@ class PagePropertyBase(NotionItemBase, Generic[_FILTER_FACT_TV]):
     def make(cls: Type[_PROP_TV], **kwargs: Any) -> _PROP_TV:
         data = cls._make_inst_dict(kwargs)
         return cls(data=data, property_name=kwargs['property_name'])
-
-    def make_spec(self) -> dict[str, dict]:
-        return {self.OBJECT_TYPE_STR: self.make_internal_spec()}
-
-    def make_internal_spec(self) -> dict[str, Any]:
-        return {}
 
 
 @attr.s(slots=True)
@@ -144,6 +119,9 @@ class PropertyList(Generic[_PAG_PROP_ITEM_TV]):
         return cls(item_cls=item_cls, text_sep=text_sep, data=data)
 
 
+_PAG_PROP_TV = TypeVar('_PAG_PROP_TV', bound='PaginatedProperty')
+
+
 @attr.s(slots=True)
 class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     """Paginated property base class"""
@@ -151,6 +129,10 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
     ITEM_CLS: ClassVar[Type[_PAG_PROP_ITEM_TV]]
 
     _text_sep: str = attr.ib(kw_only=True, default=DEFAULT_TEXT_SEP)
+
+    @property
+    def text_sep(self) -> str:
+        return self._text_sep
 
     @property
     def _content_data_list(self) -> list[dict]:
@@ -176,7 +158,10 @@ class PaginatedProperty(PageProperty, Generic[_PAG_PROP_ITEM_TV]):
         return self.items.get_text()
 
     @classmethod
-    def make_from_value(cls: Type[_PROP_TV], property_name: str, value: Any) -> _PROP_TV:
+    def make_from_value(cls: Type[_PAG_PROP_TV], property_name: str, value: Any) -> _PAG_PROP_TV:
+        if isinstance(value, cls):
+            return cls(property_name=property_name, data=value.data, text_sep=value.text_sep)
+
         assert isinstance(value, list)
         data = {
             cls.OBJECT_TYPE_KEY_STR: cls.OBJECT_TYPE_STR,
@@ -194,7 +179,6 @@ class TextProperty(PageProperty):
     """Property of type ``'text'``"""
 
     OBJECT_TYPE_STR = 'text'
-    FILTER_FACT_CLS = TextFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'content'
 
     content: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'content'), editable=True)
@@ -220,7 +204,6 @@ class NumberProperty(PageProperty):
     """Property of type ``'number'``"""
 
     OBJECT_TYPE_STR = 'number'
-    FILTER_FACT_CLS = NumberFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'number'
 
     number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
@@ -234,7 +217,6 @@ class CheckboxProperty(PageProperty):
     """Property of type ``'checkbox'``"""
 
     OBJECT_TYPE_STR = 'checkbox'
-    FILTER_FACT_CLS = CheckboxFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'checkbox'
 
     checkbox: ItemAttrDescriptor[bool] = ItemAttrDescriptor(editable=True)
@@ -245,7 +227,6 @@ class SelectProperty(PageProperty):
     """Property of type ``'select'``"""
 
     OBJECT_TYPE_STR = 'select'
-    FILTER_FACT_CLS = SelectFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'name'
 
     option_id: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(OBJECT_TYPE_STR, 'id'), derived=True)
@@ -278,7 +259,6 @@ class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
 
     OBJECT_TYPE_STR = 'multi_select'
     ITEM_CLS = MultiSelectPropertyItem
-    FILTER_FACT_CLS = MultiSelectFilterFactory
 
     def set_names(self, value: list[str]) -> None:
         self.items = PropertyList.make_from_value(
@@ -294,7 +274,6 @@ class TitleProperty(PaginatedProperty[TextProperty]):
 
     OBJECT_TYPE_STR = 'title'
     ITEM_CLS = TextProperty
-    FILTER_FACT_CLS = TextFilterFactory
 
 
 @attr.s(slots=True)
@@ -303,7 +282,6 @@ class RichTextProperty(PaginatedProperty[TextProperty]):
 
     OBJECT_TYPE_STR = 'rich_text'
     ITEM_CLS = TextProperty
-    FILTER_FACT_CLS = TextFilterFactory
 
 
 @attr.s(slots=True)
@@ -311,7 +289,6 @@ class UrlProperty(PageProperty):
     """Property of type ``'checkbox'``"""
 
     OBJECT_TYPE_STR = 'url'
-    FILTER_FACT_CLS = TextFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'url'
 
     url: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
@@ -325,7 +302,6 @@ class EmailProperty(PageProperty):
     """Property of type ``'checkbox'``"""
 
     OBJECT_TYPE_STR = 'email'
-    FILTER_FACT_CLS = TextFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'email'
 
     email: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
@@ -339,7 +315,6 @@ class PhoneNumberProperty(PageProperty):
     """Property of type ``'phone_number'``"""
 
     OBJECT_TYPE_STR = 'phone_number'
-    FILTER_FACT_CLS = TextFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'phone_number'
 
     phone_number: ItemAttrDescriptor[Union[int, float]] = ItemAttrDescriptor(editable=True)
@@ -353,7 +328,6 @@ class DateProperty(PageProperty):
     """Property of type ``'date'``"""
 
     OBJECT_TYPE_STR = 'date'
-    FILTER_FACT_CLS = DateFilterFactory
     MAKE_FROM_SINGLE_ATTR = 'start'
 
     start: ItemAttrDescriptor[Optional[datetime.datetime]] = ItemAttrDescriptor(

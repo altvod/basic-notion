@@ -9,7 +9,7 @@ import attr
 from basic_notion.base import NotionItemBase, NotionItemBaseMetaclass
 from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.parent import Parent, ParentDatabase, ParentPage
-from basic_notion.property import PageProperty
+from basic_notion.property_schema import PropertySchema
 from basic_notion.schema import Schema
 from basic_notion.utils import deserialize_date
 
@@ -18,7 +18,7 @@ def _make_schema_for_page_cls(page_cls: type) -> Schema:
     return Schema({
         name: prop
         for name, prop in inspect.getmembers(page_cls)
-        if isinstance(prop, PageProperty)
+        if isinstance(prop, PropertySchema)
     })
 
 
@@ -94,12 +94,10 @@ class NotionPage(NotionItemBase, metaclass=NotionPageMetaclass):  # noqa
     @classmethod
     def _make_inst_prop_dict(cls, kwargs: dict[str, Any]) -> dict:
         data = {}
-        for name, prop in cls.schema.items():  # type: ignore
+        for name, prop_sch in cls.schema.items():  # type: ignore
             if name not in kwargs:
                 continue
-            data[prop.property_name] = prop.make_from_value(
-                property_name=prop.property_name, value=kwargs[name],
-            ).data
+            data[prop_sch.property_name] = prop_sch.make_prop_from_value(value=kwargs[name]).data
         return data
 
     @classmethod

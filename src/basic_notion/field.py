@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar
+from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar, overload
 
 from basic_notion.property import (
     PageProperty, NumberProperty, CheckboxProperty,
@@ -9,6 +9,13 @@ from basic_notion.property import (
     EmailProperty, UrlProperty, PhoneNumberProperty,
     DateProperty,
 )
+from basic_notion.property_schema import (
+    PropertySchema, NumberPropertySchema, CheckboxPropertySchema,
+    SelectPropertySchema, MultiSelectPropertySchema,
+    TitlePropertySchema, RichTextPropertySchema,
+    EmailPropertySchema, UrlPropertySchema, PhoneNumberPropertySchema,
+    DatePropertySchema,
+)
 from basic_notion.utils import get_from_dict
 
 if TYPE_CHECKING:
@@ -16,18 +23,22 @@ if TYPE_CHECKING:
 
 
 _OWNER_TV = TypeVar('_OWNER_TV', bound='NotionItemBase')
-_PROP_VALUE_TV = TypeVar('_PROP_VALUE_TV', bound=PageProperty)
+_PROP_SCHEMA_TV = TypeVar('_PROP_SCHEMA_TV', bound=PropertySchema)
+_PROP_TV = TypeVar('_PROP_TV', bound=PageProperty)
 
 
-class NotionField(Generic[_PROP_VALUE_TV]):
+class NotionField(Generic[_PROP_SCHEMA_TV, _PROP_TV]):
     """
     Descriptor that represents Notion object attributes.
-    The returned value is an instance of the ``PageProperty``
+    The returned value is an instance of ``PropertySchema``
+    if called on a class and a ``PageProperty`` if called
+    on an instance.
     """
 
     __slots__ = ('__property_name', '__root_key', '__key')
 
-    PROP_CLS: ClassVar[Type[_PROP_VALUE_TV]]
+    PROP_SCHEMA_CLS: ClassVar[Type[_PROP_SCHEMA_TV]]
+    PROP_CLS: ClassVar[Type[_PROP_TV]]
 
     __DEFAULT_ROOT_KEY = ('properties',)  # Indicates where to look for the data in the owner object's data
 
@@ -62,69 +73,85 @@ class NotionField(Generic[_PROP_VALUE_TV]):
     def key(self) -> tuple[str, ...]:
         return self.__key
 
-    def __get__(self, instance: Optional[_OWNER_TV], owner: Type[_OWNER_TV]) -> PageProperty:
-        value_data: Optional[dict] = None
-        if instance is not None:
-            value_data = get_from_dict(instance.data, self.__key)
+    @overload
+    def __get__(self, instance: None, owner: Type[_OWNER_TV]) -> PropertySchema: ...
 
+    @overload
+    def __get__(self, instance: Optional[_OWNER_TV], owner: Type[_OWNER_TV]) -> _PROP_TV: ...
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self.PROP_SCHEMA_CLS(property_name=self._property_name)  # TODO: schema data
+
+        value_data = get_from_dict(instance.data, self.__key)
         return self.PROP_CLS(data=value_data, property_name=self._property_name)
 
 
-class NumberField(NotionField[NumberProperty]):
+class NumberField(NotionField[NumberPropertySchema, NumberProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = NumberPropertySchema
     PROP_CLS = NumberProperty
 
 
-class CheckboxField(NotionField[CheckboxProperty]):
+class CheckboxField(NotionField[CheckboxPropertySchema, CheckboxProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = CheckboxPropertySchema
     PROP_CLS = CheckboxProperty
 
 
-class SelectField(NotionField[SelectProperty]):
+class SelectField(NotionField[SelectPropertySchema, SelectProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = SelectPropertySchema
     PROP_CLS = SelectProperty
 
 
-class MultiSelectField(NotionField[MultiSelectProperty]):
+class MultiSelectField(NotionField[MultiSelectPropertySchema, MultiSelectProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = MultiSelectPropertySchema
     PROP_CLS = MultiSelectProperty
 
 
-class TitleField(NotionField[TitleProperty]):
+class TitleField(NotionField[TitlePropertySchema, TitleProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = TitlePropertySchema
     PROP_CLS = TitleProperty
 
 
-class RichTextField(NotionField[RichTextProperty]):
+class RichTextField(NotionField[RichTextPropertySchema, RichTextProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = RichTextPropertySchema
     PROP_CLS = RichTextProperty
 
 
-class EmailField(NotionField[EmailProperty]):
+class EmailField(NotionField[EmailPropertySchema, EmailProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = EmailPropertySchema
     PROP_CLS = EmailProperty
 
 
-class UrlField(NotionField[UrlProperty]):
+class UrlField(NotionField[UrlPropertySchema, UrlProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = UrlPropertySchema
     PROP_CLS = UrlProperty
 
 
-class PhoneNumberField(NotionField[PhoneNumberProperty]):
+class PhoneNumberField(NotionField[PhoneNumberPropertySchema, PhoneNumberProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = PhoneNumberPropertySchema
     PROP_CLS = PhoneNumberProperty
 
 
-class DateField(NotionField[DateProperty]):
+class DateField(NotionField[DatePropertySchema, DateProperty]):
     __slots__ = ()
 
+    PROP_SCHEMA_CLS = DatePropertySchema
     PROP_CLS = DateProperty
