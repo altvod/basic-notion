@@ -74,7 +74,8 @@ class PageProperty(PagePropertyBase):
     type: ItemAttrDescriptor[str] = ItemAttrDescriptor()
 
 
-DEFAULT_TEXT_SEP = ', '
+DEFAULT_TEXT_SEP = ''
+DEFAULT_LIST_TEXT_SEP = ', '
 
 _PAG_PROP_ITEM_TV = TypeVar('_PAG_PROP_ITEM_TV', bound=PageProperty)
 
@@ -259,6 +260,8 @@ class MultiSelectProperty(PaginatedProperty[MultiSelectPropertyItem]):
 
     OBJECT_TYPE_STR = 'multi_select'
     ITEM_CLS = MultiSelectPropertyItem
+
+    _text_sep: str = attr.ib(kw_only=True, default=DEFAULT_LIST_TEXT_SEP)
 
     def set_names(self, value: list[str]) -> None:
         self.items = PropertyList.make_from_value(
