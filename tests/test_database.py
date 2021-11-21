@@ -1,6 +1,9 @@
 import uuid
 
 from basic_notion.database import NotionDatabase
+from basic_notion.property_schema import (
+    MultiSelectPropertySchema, TitlePropertySchema, SelectPropertySchema,
+)
 
 from tests.models import ReadingListItem
 
@@ -30,6 +33,7 @@ def test_create_database(sync_client, settings):
     assert database.id
     assert database.title.get_text() == f'The New Database {rand_uuid}'
     assert database.parent.norm_page_id == root_page_id.replace('-', '')
-    # model_props_spec = ReadingListItem.schema.make_spec()
-    # database_props_spec = database.schema.make_spec()
-    # assert database_props_spec == model_props_spec  # FIXME
+    schema = database.schema
+    assert isinstance(schema['Name'], TitlePropertySchema)
+    assert isinstance(schema['Type'], SelectPropertySchema)
+    assert isinstance(schema['Author'], MultiSelectPropertySchema)

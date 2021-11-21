@@ -44,13 +44,12 @@ def rl_database_query(rl_database) -> Query:
 
 @pytest.fixture(scope='function')
 def reading_list(sync_client, rl_database_query, settings) -> ReadingList:
-    data = sync_client.databases.query(
-        **rl_database_query.filter(
-            ReadingList.item.type.filter.equals('Book')
-        ).sorts(
-            ReadingList.item.name.sort.ascending
-        ).serialize()
-    )
+    query_data = rl_database_query.filter(
+        ReadingList.item.type.filter.equals('Book')
+    ).sorts(
+        ReadingList.item.name.sort.ascending
+    ).serialize()
+    data = sync_client.databases.query(**query_data)
     return ReadingList(data=data)
 
 

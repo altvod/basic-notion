@@ -8,11 +8,13 @@ from basic_notion.base import NotionItemBase
 from basic_notion.attr import ItemAttrDescriptor
 from basic_notion.parent import ParentPage, ParentDatabase
 from basic_notion.property import PropertyList, TextProperty
-from basic_notion.schema import Schema
+from basic_notion.schema import Schema, load_schema_from_dict
 
 
 @attr.s(slots=True)
 class NotionDatabase(NotionItemBase):
+    _schema: Schema = attr.ib(init=False)
+
     id: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     url: ItemAttrDescriptor[str] = ItemAttrDescriptor()
     created_time: ItemAttrDescriptor[str] = ItemAttrDescriptor()
@@ -25,6 +27,9 @@ class NotionDatabase(NotionItemBase):
     properties_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('properties',))
     parent_data: ItemAttrDescriptor[dict[str, dict]] = ItemAttrDescriptor(key=('parent',))
 
+    def __attrs_post_init__(self) -> None:
+        self._schema = load_schema_from_dict(self.properties_data)
+
     @property
     def parent(self) -> ParentPage:
         return ParentPage(data=self.parent_data)
@@ -35,7 +40,7 @@ class NotionDatabase(NotionItemBase):
 
     @property
     def schema(self) -> Schema:
-        raise NotImplementedError  # TODO
+        return self._schema
 
     @classmethod
     def _make_inst_dict(cls, kwargs: dict[str, Any]) -> dict:

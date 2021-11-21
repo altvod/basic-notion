@@ -180,3 +180,24 @@ class DatePropertySchema(PropertySchema[DateProperty, DateFilterFactory]):
     OBJECT_TYPE_STR = 'date'
     PROP_CLS = DateProperty
     FILTER_FACT_CLS = DateFilterFactory
+
+
+_PROPERTY_SCHEMA_CLS_REGISTRY: dict[str, Type[PropertySchema]] = {
+    cls.OBJECT_TYPE_STR: cls  # type: ignore
+    for cls in [
+        NumberPropertySchema,
+        CheckboxPropertySchema,
+        SelectPropertySchema,
+        MultiSelectPropertySchema,
+        TitlePropertySchema,
+        RichTextPropertySchema,
+        EmailPropertySchema,
+        PhoneNumberPropertySchema,
+        UrlPropertySchema,
+        DatePropertySchema,
+    ]
+}
+
+
+def get_property_schema_cls(property_type_name: str) -> Type[PropertySchema]:
+    return _PROPERTY_SCHEMA_CLS_REGISTRY[property_type_name]

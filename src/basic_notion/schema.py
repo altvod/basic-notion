@@ -4,7 +4,7 @@ from typing import Iterable, Mapping
 
 import attr
 
-from basic_notion.property_schema import PropertySchema
+from basic_notion.property_schema import PropertySchema, get_property_schema_cls
 
 
 @attr.s(frozen=True)
@@ -29,3 +29,15 @@ class Schema:
             prop.property_name: prop.data
             for prop in self._properties.values()
         }
+
+
+def load_schema_from_dict(raw_data: dict) -> Schema:
+    data = {
+        name: get_property_schema_cls(prop_data['type'])(
+            property_name=name,
+            data=prop_data,
+        )
+        for name, prop_data in raw_data.items()
+        if 'type' in prop_data
+    }
+    return Schema(properties=data)
