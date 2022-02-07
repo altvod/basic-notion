@@ -1,8 +1,12 @@
+import uuid
+from contextlib import contextmanager
+
 import pytest
 from notion_client import Client
 
-from basic_notion.parent import ParentDatabase
+from basic_notion.parent import ParentDatabase, ParentPage
 from basic_notion.database import NotionDatabase
+from basic_notion.titled_page import TitledPage
 from basic_notion.query import Query
 
 from tests.settings import TestSettings, load_settings_from_env
@@ -56,3 +60,21 @@ def reading_list(sync_client, rl_database_query, settings) -> ReadingList:
 @pytest.fixture(scope='function')
 def reading_list_item(reading_list):
     return reading_list.items()[0]
+
+
+@pytest.fixture(scope='function')
+@contextmanager
+def titled_page(sync_client, settings):
+    title = f'Test Database {str(uuid.uuid4())}'
+    page_data = TitledPage.make(
+        parent=ParentPage.make(page_id=settings.root_page_id),
+        title=[title],
+    ).data
+    response = sync_client.pages.create(**page_data)
+    page = TitledPage(data=response)
+
+    try:
+        yield page
+    finally:
+        page.archived = True
+        sync_client.pages.update(page_id=page.id, **page.data)

@@ -1,6 +1,7 @@
 import datetime
 
-from basic_notion.parent import ParentDatabase
+from basic_notion.parent import ParentDatabase, ParentPage
+from basic_notion.titled_page import TitledPage
 
 from tests.models import ReadingList, ReadingListItem
 from tests.tools import get_id_list
@@ -76,7 +77,7 @@ def test_page_make():
     assert data == expected_data
 
 
-def test_create_and_archive_page(sync_client, rl_database):
+def test_create_and_archive_database_page(sync_client, rl_database):
     page_data = ReadingListItem.make(
         parent=ParentDatabase.make(database_id=rl_database.id),
         type='Book',
@@ -98,3 +99,18 @@ def test_create_and_archive_page(sync_client, rl_database):
     sync_client.pages.update(page_id=item.id, **item.data)
     id_list = get_id_list(sync_client=sync_client, list_model=ReadingList, database_id=rl_database.id)
     assert item.id not in id_list
+
+
+def test_create_and_archive_regular_titled_page(sync_client, settings):
+    page_data = TitledPage.make(
+        parent=ParentPage.make(page_id=settings.root_page_id),
+        title=['The Best Book Ever'],
+    ).data
+    response = sync_client.pages.create(**page_data)
+    page = TitledPage(data=response)
+    assert len(page.id) == 36
+    assert page.title.get_text() == 'The Best Book Ever'
+
+    # Now archive (delete) it
+    page.archived = True
+    sync_client.pages.update(page_id=page.id, **page.data)
