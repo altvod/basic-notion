@@ -40,6 +40,8 @@ class PagePropertyBase(NotionItemBase):
 
     @classmethod
     def make_from_value(cls: Type[_PROP_TV], property_name: str, value: Any) -> _PROP_TV:
+        """Build full instance data from its simplified form"""
+
         if isinstance(value, cls):
             return cls(property_name=property_name, data=value.data)
 
@@ -64,6 +66,8 @@ class PagePropertyBase(NotionItemBase):
 
     @classmethod
     def make(cls: Type[_PROP_TV], **kwargs: Any) -> _PROP_TV:
+        """Make property instance from keyword arguments"""
+
         data = cls._make_inst_dict(kwargs)
         return cls(data=data, property_name=kwargs['property_name'])
 

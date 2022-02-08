@@ -1,5 +1,4 @@
 import uuid
-from contextlib import contextmanager
 
 import pytest
 from notion_client import Client
@@ -63,9 +62,8 @@ def reading_list_item(reading_list):
 
 
 @pytest.fixture(scope='function')
-@contextmanager
 def titled_page(sync_client, settings):
-    title = f'Test Database {str(uuid.uuid4())}'
+    title = f'Test Titled Page {str(uuid.uuid4())}'
     page_data = TitledPage.make(
         parent=ParentPage.make(page_id=settings.root_page_id),
         title=[title],
@@ -77,4 +75,4 @@ def titled_page(sync_client, settings):
         yield page
     finally:
         page.archived = True
-        sync_client.pages.update(page_id=page.id, **page.data)
+        # sync_client.pages.update(page_id=page.id, **page.data)
