@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import ClassVar, Generic, Optional, Type, TYPE_CHECKING, TypeVar, overload
+from typing import Any, ClassVar, Generic, Optional, Tuple, Type, TYPE_CHECKING, TypeVar, Union, overload
 
 from basic_notion.property import (
-    PageProperty, NumberProperty, CheckboxProperty,
+    PageProperty, PropertyList,
+    NumberProperty, CheckboxProperty,
     SelectProperty, MultiSelectProperty,
     TitleProperty, RichTextProperty,
     EmailProperty, UrlProperty, PhoneNumberProperty,
@@ -16,7 +17,7 @@ from basic_notion.property_schema import (
     EmailPropertySchema, UrlPropertySchema, PhoneNumberPropertySchema,
     DatePropertySchema,
 )
-from basic_notion.utils import get_from_dict
+from basic_notion.utils import get_from_dict, set_to_dict
 
 if TYPE_CHECKING:
     from basic_notion.base import NotionItemBase  # noqa
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
 
 _OWNER_TV = TypeVar('_OWNER_TV', bound='NotionItemBase')
 _PROP_SCHEMA_TV = TypeVar('_PROP_SCHEMA_TV', bound=PropertySchema)
-_PROP_TV = TypeVar('_PROP_TV', bound=PageProperty)
+_PROP_TV = TypeVar('_PROP_TV', bound=Union[PageProperty, PropertyList])
 
 
 class NotionField(Generic[_PROP_SCHEMA_TV, _PROP_TV]):
@@ -38,9 +39,11 @@ class NotionField(Generic[_PROP_SCHEMA_TV, _PROP_TV]):
     __slots__ = ('__property_name', '__root_key', '__key')
 
     PROP_SCHEMA_CLS: ClassVar[Type[_PROP_SCHEMA_TV]]
-    PROP_CLS: ClassVar[Type[_PROP_TV]]
+    PROP_CLS: ClassVar[Type[PageProperty]]
+    IS_LIST: ClassVar[bool] = False
 
-    __DEFAULT_ROOT_KEY = ('properties',)  # Indicates where to look for the data in the owner object's data
+    # Indicates where to look for the data in the owner object's data
+    __DEFAULT_ROOT_KEY: ClassVar[Tuple[str, ...]] = ('properties',)
 
     def __init__(
             self, property_name: Optional[str] = None,
@@ -74,17 +77,45 @@ class NotionField(Generic[_PROP_SCHEMA_TV, _PROP_TV]):
         return self.__key
 
     @overload
-    def __get__(self, instance: None, owner: Type[_OWNER_TV]) -> PropertySchema: ...
+    def __get__(self, instance: None, owner: Type[_OWNER_TV]) -> _PROP_SCHEMA_TV: ...
 
     @overload
     def __get__(self, instance: Optional[_OWNER_TV], owner: Type[_OWNER_TV]) -> _PROP_TV: ...
 
     def __get__(self, instance, owner):
+        """Return data described by the property as a `NotionProperty` or `PropertyList` object"""
+
         if instance is None:
             return self.PROP_SCHEMA_CLS(property_name=self._property_name)  # TODO: schema data
 
         value_data = get_from_dict(instance.data, self.__key)
-        return self.PROP_CLS(data=value_data, property_name=self._property_name)
+        if self.IS_LIST:
+            assert isinstance(value_data, list)
+            value = PropertyList(data=value_data, item_cls=self.PROP_CLS)  # type: ignore
+        else:
+            assert isinstance(value_data, dict)
+            value = self.PROP_CLS(data=value_data, property_name=self._property_name)  # type: ignore
+
+        return value
+
+    def __set__(self, instance: _OWNER_TV, value_data: Any) -> None:
+        """Set property from simplified value"""
+
+        normalized_value_data: Union[list, dict]
+        if self.IS_LIST:
+            if not isinstance(value_data, list):
+                value_data = [value_data]
+            normalized_value_data = PropertyList.make_from_value(
+                property_name=self._property_name, value=value_data,
+                item_cls=self.PROP_CLS,
+            ).data
+        else:
+            assert isinstance(value_data, dict)
+            normalized_value_data = self.PROP_CLS.make_from_value(
+                value=value_data, property_name=self._property_name
+            ).data
+
+        set_to_dict(instance.data, self.__key, normalized_value_data)
 
 
 class NumberField(NotionField[NumberPropertySchema, NumberProperty]):

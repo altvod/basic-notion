@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Generic, Type, TypeVar
+from typing import Any, ClassVar, Generic, Type, TypeVar, Union
 
 import attr
 
@@ -10,7 +10,9 @@ from basic_notion.filter import (
     SelectFilterFactory, MultiSelectFilterFactory, DateFilterFactory
 )
 from basic_notion.property import (
-    PageProperty, NumberProperty, CheckboxProperty,
+    PageProperty, PropertyList,
+    TextProperty,
+    NumberProperty, CheckboxProperty,
     SelectProperty, MultiSelectProperty,
     TitleProperty, RichTextProperty,
     EmailProperty, UrlProperty, PhoneNumberProperty,
@@ -21,14 +23,15 @@ from basic_notion.attr import ItemAttrDescriptor
 
 
 _FILTER_FACT_TV = TypeVar('_FILTER_FACT_TV', bound=FilterFactory)
-_PROP_TV = TypeVar('_PROP_TV', bound=PageProperty)
+_PROP_TV = TypeVar('_PROP_TV', bound=Union[PageProperty, PropertyList])
 
 
 @attr.s(slots=True)
 class PropertySchema(NotionItemBase, Generic[_PROP_TV, _FILTER_FACT_TV]):
     OBJECT_TYPE_KEY_STR = 'type'
-    PROP_CLS: ClassVar[Type[_PROP_TV]]
+    PROP_CLS: ClassVar[Type[PageProperty]]
     FILTER_FACT_CLS: ClassVar[Type[_FILTER_FACT_TV]]
+    IS_LIST: ClassVar[bool] = False
 
     _property_name: str = attr.ib(kw_only=True)
 
@@ -75,7 +78,12 @@ class PropertySchema(NotionItemBase, Generic[_PROP_TV, _FILTER_FACT_TV]):
         return {}
 
     def make_prop_from_value(self, value: Any) -> _PROP_TV:
-        return self.PROP_CLS.make_from_value(
+        if self.IS_LIST:
+            return PropertyList.make_from_value(  # type: ignore
+                item_cls=self.PROP_CLS,
+                property_name=self._property_name, value=value,
+            )
+        return self.PROP_CLS.make_from_value(  # type: ignore
             property_name=self._property_name, value=value,
         )
 
@@ -90,6 +98,16 @@ class PropertySchema(NotionItemBase, Generic[_PROP_TV, _FILTER_FACT_TV]):
                 'expected either one positional argument or any '
                 'number of keyword arguments'
             )
+
+
+@attr.s(slots=True)
+class TextListSchema(PropertySchema[PropertyList[TextProperty], TextFilterFactory]):
+    """Paginated text schema"""
+
+    OBJECT_TYPE_STR = 'text'
+    PROP_CLS = TextProperty
+    FILTER_FACT_CLS = TextFilterFactory
+    IS_LIST = True
 
 
 @attr.s(slots=True)
