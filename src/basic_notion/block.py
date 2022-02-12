@@ -69,7 +69,8 @@ class NotionBlock(NotionItemBase, metaclass=NotionBlockMetaclass):
     def _make_inst_dict(cls, kwargs: dict[str, Any]) -> dict:
         data = super()._make_inst_dict(kwargs)
         data['type'] = cls.BLOCK_TYPE_STR
-        data[cls.BLOCK_TYPE_STR] = cls._make_inst_prop_dict(kwargs)
+        data[cls.BLOCK_TYPE_STR] = data.get(cls.BLOCK_TYPE_STR, {})
+        data[cls.BLOCK_TYPE_STR].update(cls._make_inst_prop_dict(kwargs))
         return data
 
     @classmethod
@@ -88,7 +89,83 @@ class TextListField(NotionField[TextListSchema, PropertyList[TextProperty]]):
     IS_LIST = True
 
 
+class _BlockWithText(NotionBlock):
+    BLOCK_TYPE_STR = 'paragraph'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
 class ParagraphBlock(NotionBlock):
     BLOCK_TYPE_STR = 'paragraph'
 
     text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class Heading1Block(NotionBlock):
+    BLOCK_TYPE_STR = 'heading_1'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class Heading2Block(NotionBlock):
+    BLOCK_TYPE_STR = 'heading_2'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class Heading3Block(NotionBlock):
+    BLOCK_TYPE_STR = 'heading_3'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class CalloutBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'callout'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+    # TODO: icon
+
+
+class BulletedListItemBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'bulleted_list_item'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class NumberedListItemBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'numbered_list_item'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class ToDoBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'to_do'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+    checked: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(BLOCK_TYPE_STR, 'checked'), editable=True)
+
+
+class ToggleBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'toggle'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+
+
+class CodeBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'code'
+
+    text: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+    caption: TextListField = TextListField(root_key=(BLOCK_TYPE_STR,))
+    language: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(BLOCK_TYPE_STR, 'language'), editable=True)
+
+
+class ChildPageBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'child_page'
+
+    title: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(BLOCK_TYPE_STR, 'title'), editable=True)
+
+
+class ChildDatabaseBlock(NotionBlock):
+    BLOCK_TYPE_STR = 'child_database'
+
+    title: ItemAttrDescriptor[str] = ItemAttrDescriptor(key=(BLOCK_TYPE_STR, 'title'), editable=True)
